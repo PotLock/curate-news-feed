@@ -1,77 +1,48 @@
-import { Link } from "@tanstack/react-router";
-import { useTRPC } from "@/utils/trpc";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 
 import { ModeToggle } from "./mode-toggle";
 import { UserMenu } from "./user-menu";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { useSearch } from "@/contexts/search-context";
 
 export default function Header() {
-  const trpc = useTRPC();
-  const healthCheck = useQuery(trpc.healthCheck.queryOptions());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  const links = [
-    { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Demo" },
-  ];
+  const { searchQuery, setSearchQuery } = useSearch();
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-          {links.map(({ to, label }) => {
-            return (
-              <Link 
-                key={to} 
-                to={to}
-                className="text-lg font-medium text-foreground/80 transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-semibold"
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Search Bar - Left Side */}
+        <div className="hidden md:flex flex-1 max-w-md mr-8">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search feeds and articles..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+        </div>
 
         {/* Mobile Menu Button */}
         <Button
           variant="ghost"
           size="sm"
-          className="md:hidden"
+          className="md:hidden mr-auto"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
         
-        <div className="flex items-center gap-3 sm:gap-6">
-          {/* Health Check - Hidden on small screens */}
-          <div className="hidden sm:flex items-center gap-3">
-            <div
-              className={`h-2.5 w-2.5 rounded-full ${
-                healthCheck.data ? "bg-emerald-500" : "bg-red-500"
-              }`}
-            />
-            <span className="text-sm font-medium text-muted-foreground">
-              {healthCheck.isLoading
-                ? "Checking..."
-                : healthCheck.data
-                ? "API Connected"
-                : "API Disconnected"}
-            </span>
-          </div>
-          
-          {/* Health Check Indicator - Mobile only */}
-          <div className="sm:hidden">
-            <div
-              className={`h-2.5 w-2.5 rounded-full ${
-                healthCheck.data ? "bg-emerald-500" : "bg-red-500"
-              }`}
-            />
-          </div>
-          
+        {/* Right Side Actions */}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm">
+            Submit News
+          </Button>
           <ModeToggle />
           <UserMenu />
         </div>
@@ -80,35 +51,24 @@ export default function Header() {
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t bg-background/95 backdrop-blur">
-          <nav className="px-4 py-4 space-y-2">
-            {links.map(({ to, label }) => {
-              return (
-                <Link 
-                  key={to} 
-                  to={to}
-                  className="block py-2 text-lg font-medium text-foreground/80 transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-semibold"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {label}
-                </Link>
-              );
-            })}
-            {/* Health Check in Mobile Menu */}
-            <div className="flex items-center gap-3 py-2">
-              <div
-                className={`h-2.5 w-2.5 rounded-full ${
-                  healthCheck.data ? "bg-emerald-500" : "bg-red-500"
-                }`}
+          <div className="px-4 py-4 space-y-4">
+            {/* Mobile Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search feeds and articles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full"
               />
-              <span className="text-sm font-medium text-muted-foreground">
-                {healthCheck.isLoading
-                  ? "Checking..."
-                  : healthCheck.data
-                  ? "API Connected"
-                  : "API Disconnected"}
-              </span>
             </div>
-          </nav>
+
+            {/* Submit News Button */}
+            <Button variant="outline" size="sm" className="w-full">
+              Submit News
+            </Button>
+          </div>
         </div>
       )}
     </header>
