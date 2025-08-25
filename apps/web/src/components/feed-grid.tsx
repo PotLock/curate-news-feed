@@ -1,10 +1,20 @@
 import type { FeedItem as IFeedItem } from "../../../server/src/schemas/feed";
-import { useParams } from "@tanstack/react-router";
+import { useParams, Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { useSearch } from "@/contexts/search-context";
 import { useSearch as useSearchFilter } from "@/hooks/use-search";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+
+// Function to generate slug from title
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+    .trim();
+};
 
 interface FeedGridProps {
   items: IFeedItem[];
@@ -13,6 +23,8 @@ interface FeedGridProps {
 }
 
 export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
+  const params = useParams({ strict: false });
+  const feedId = (params as any)?.feedId;
   const { searchQuery, isSearchActive } = useSearch();
   const filteredItems = useSearchFilter(items, searchQuery) as IFeedItem[];
   const [selectedCategory, setSelectedCategory] = useState("trending");
@@ -281,11 +293,26 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
           </div>
 
           {/* Sticky Bottom CTA */}
-          <div className="sticky bottom-0 h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0 rounded-b-lg">
-            <button className="flex items-center justify-center gap-2 w-[229px] px-6 py-3 bg-white/10 text-white font-inter text-xl font-medium leading-[37.333px] rounded-[45.5px]">
-              Start Reading
-              <ArrowRight size={21} />
-            </button>
+          <div className="sticky bottom-0 h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0 rounded-b-lg z-10">
+            {displayItems.length > 0 && feedId && (
+              <Link
+                to="/reading/$feedId/$slug"
+                params={{
+                  feedId: feedId,
+                  slug: generateSlug(displayItems[0].title),
+                }}
+                className="flex items-center justify-center gap-2 w-[229px] px-6 py-3 bg-white/10 text-white font-inter text-xl font-medium leading-[37.333px] rounded-[45.5px] hover:bg-white/20 transition-colors border-t border-b border-white"
+              >
+                Start Reading
+                <ArrowRight size={21} />
+              </Link>
+            )}
+            {displayItems.length > 0 && !feedId && (
+              <div className="flex items-center justify-center gap-2 w-[229px] px-6 py-3 bg-white/5 text-white/50 font-inter text-xl font-medium leading-[37.333px] rounded-[45.5px] cursor-not-allowed">
+                Start Reading
+                <ArrowRight size={21} />
+              </div>
+            )}
           </div>
         </div>
       </div>

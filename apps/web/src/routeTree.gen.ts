@@ -14,6 +14,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutAuthenticatedRouteImport } from './routes/_layout/_authenticated'
 import { Route as LayoutFeedIdIndexRouteImport } from './routes/_layout/$feedId/index'
+import { Route as ReadingFeedIdSlugRouteImport } from './routes/reading/$feedId/$slug'
 import { Route as LayoutAuthenticatedDashboardRouteImport } from './routes/_layout/_authenticated/dashboard'
 import { Route as LayoutFeedIdItemIdRouteImport } from './routes/_layout/$feedId/$itemId'
 
@@ -40,6 +41,11 @@ const LayoutFeedIdIndexRoute = LayoutFeedIdIndexRouteImport.update({
   path: '/$feedId/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const ReadingFeedIdSlugRoute = ReadingFeedIdSlugRouteImport.update({
+  id: '/reading/$feedId/$slug',
+  path: '/reading/$feedId/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutAuthenticatedDashboardRoute =
   LayoutAuthenticatedDashboardRouteImport.update({
     id: '/dashboard',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/$feedId/$itemId': typeof LayoutFeedIdItemIdRoute
   '/dashboard': typeof LayoutAuthenticatedDashboardRoute
+  '/reading/$feedId/$slug': typeof ReadingFeedIdSlugRoute
   '/$feedId': typeof LayoutFeedIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -64,6 +71,7 @@ export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/$feedId/$itemId': typeof LayoutFeedIdItemIdRoute
   '/dashboard': typeof LayoutAuthenticatedDashboardRoute
+  '/reading/$feedId/$slug': typeof ReadingFeedIdSlugRoute
   '/$feedId': typeof LayoutFeedIdIndexRoute
 }
 export interface FileRoutesById {
@@ -74,13 +82,26 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/$feedId/$itemId': typeof LayoutFeedIdItemIdRoute
   '/_layout/_authenticated/dashboard': typeof LayoutAuthenticatedDashboardRoute
+  '/reading/$feedId/$slug': typeof ReadingFeedIdSlugRoute
   '/_layout/$feedId/': typeof LayoutFeedIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/login' | '/' | '/$feedId/$itemId' | '/dashboard' | '/$feedId'
+  fullPaths:
+    | '/login'
+    | '/'
+    | '/$feedId/$itemId'
+    | '/dashboard'
+    | '/reading/$feedId/$slug'
+    | '/$feedId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/$feedId/$itemId' | '/dashboard' | '/$feedId'
+  to:
+    | '/login'
+    | '/'
+    | '/$feedId/$itemId'
+    | '/dashboard'
+    | '/reading/$feedId/$slug'
+    | '/$feedId'
   id:
     | '__root__'
     | '/_layout'
@@ -89,12 +110,14 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/_layout/$feedId/$itemId'
     | '/_layout/_authenticated/dashboard'
+    | '/reading/$feedId/$slug'
     | '/_layout/$feedId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ReadingFeedIdSlugRoute: typeof ReadingFeedIdSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -133,6 +156,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$feedId'
       preLoaderRoute: typeof LayoutFeedIdIndexRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/reading/$feedId/$slug': {
+      id: '/reading/$feedId/$slug'
+      path: '/reading/$feedId/$slug'
+      fullPath: '/reading/$feedId/$slug'
+      preLoaderRoute: typeof ReadingFeedIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_layout/_authenticated/dashboard': {
       id: '/_layout/_authenticated/dashboard'
@@ -182,6 +212,7 @@ const LayoutRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   LoginRoute: LoginRoute,
+  ReadingFeedIdSlugRoute: ReadingFeedIdSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
