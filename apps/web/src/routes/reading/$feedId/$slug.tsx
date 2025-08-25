@@ -235,15 +235,21 @@ function ReadingPage() {
             </svg>
           </Button>
         </div>
-        <ReadingArticle item={item} />
+        <ReadingArticle 
+          item={item} 
+          feedId={feedId}
+          prevItem={prevItem && prevItem.id ? { id: prevItem.id, title: prevItem.title } : null}
+          nextItem={nextItem && nextItem.id ? { id: nextItem.id, title: nextItem.title } : null}
+          generateSlug={generateSlug}
+        />
         <ReadingActions />
       </div>
 
-      <ReadingNavigation
+      {/* <ReadingNavigation
         feedId={feedId}
         prevItem={prevItem}
         nextItem={nextItem}
-      />
+      /> */}
     </div>
   );
 }
