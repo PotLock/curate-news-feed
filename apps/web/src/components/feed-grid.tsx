@@ -184,9 +184,14 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                 rows.push(
                   <div key={rowIndex} className="flex w-full gap-x-3">
                     {rowItems.map(({ item, globalIndex }, cardIndex) => (
-                      <div
+                      <Link
                         key={item.id || globalIndex}
-                        className={`py-[46px] px-[24px] h-[358px] rounded-lg min-w-[282px] flex flex-col justify-between ${cardIndex === 0 ? "max-w-[500px]" : "flex-1"}`}
+                        to="/reading/$feedId/$slug"
+                        params={{
+                          feedId: feedId,
+                          slug: generateSlug(item.title),
+                        }}
+                        className={`py-[46px] px-[24px] h-[358px] rounded-lg min-w-[282px] flex flex-col justify-between ${cardIndex === 0 ? "max-w-[500px]" : "flex-1"} hover:opacity-90 transition-opacity cursor-pointer`}
                         style={{ backgroundColor: getCardColor(globalIndex) }}
                       >
                         {/* Content Section */}
@@ -280,7 +285,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                             })()}
                           </div>
                         )}
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 );

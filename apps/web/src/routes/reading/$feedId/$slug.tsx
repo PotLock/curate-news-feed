@@ -161,16 +161,19 @@ function ReadingPage() {
 
   return (
     <div className="px-[258px] py-[58px] flex flex-col items-center justify-center">
-      <ReadingHeader 
+      <ReadingHeader
         feedId={feedId}
         categoryCount={getCategoryCount()}
         uploadDate={item.date}
         authorName={item.author?.[0]?.name}
       />
-      
-      <ReadingArticle item={item} />
-      
-      <ReadingNavigation 
+      <div className="flex gap-[20px]">
+        <h1>test</h1>
+        <ReadingArticle item={item} />
+        <h1>test</h1>
+      </div>
+
+      <ReadingNavigation
         feedId={feedId}
         prevItem={prevItem}
         nextItem={nextItem}
