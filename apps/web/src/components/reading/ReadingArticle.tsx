@@ -3,26 +3,44 @@ interface ReadingArticleProps {
     title: string;
     date: string;
     published?: string;
-    author?: Array<{ name: string; email?: string; link?: string; avatar?: string }>;
-    category?: Array<{ name: string; domain?: string; scheme?: string; term?: string }>;
+    author?: Array<{
+      name: string;
+      email?: string;
+      link?: string;
+      avatar?: string;
+    }>;
+    category?: Array<{
+      name: string;
+      domain?: string;
+      scheme?: string;
+      term?: string;
+    }>;
     description?: string;
     content?: string;
     link: string;
-    image?: string | { url: string; type?: string; length?: number; title?: string };
+    image?:
+      | string
+      | { url: string; type?: string; length?: number; title?: string };
     copyright?: string;
   };
 }
 
 export function ReadingArticle({ item }: ReadingArticleProps) {
-  const formatDate = (dateString: string) => {
+  const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return "Just now";
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 2592000)
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    if (diffInSeconds < 31536000)
+      return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+    return `${Math.floor(diffInSeconds / 31536000)} years ago`;
   };
 
   const getImageUrl = (image: string | { url: string } | undefined) => {
@@ -30,102 +48,129 @@ export function ReadingArticle({ item }: ReadingArticleProps) {
     return typeof image === "string" ? image : image.url;
   };
 
+  const parseContent = (content: string) => {
+    if (!content) return [];
+
+    // Remove HTML tags and clean up text
+    const textContent = content
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // Split by sentences (periods followed by space and capital letter or end of string)
+    const sentences = textContent
+      .split(/\.\s+(?=[A-Z])/)
+      .filter((s) => s.trim().length > 0);
+
+    if (sentences.length === 0) return [];
+
+    // First sentence becomes first paragraph
+    const firstParagraph = sentences[0] + (sentences[0].endsWith('.') ? '' : '.');
+    
+    // All remaining sentences become second paragraph
+    if (sentences.length > 1) {
+      const remainingSentences = sentences.slice(1);
+      const secondParagraph = remainingSentences
+        .map(sentence => sentence + (sentence.endsWith('.') ? '' : '.'))
+        .join(' ');
+      
+      return [firstParagraph, secondParagraph];
+    }
+
+    return [firstParagraph];
+  };
+
+  const contentParagraphs = item.content ? parseContent(item.content) : [];
+
   return (
-    <article className="w-full max-w-4xl">
-      {/* Hero Image */}
+    <article className="w-full max-w-4xl gap-[40px] flex flex-col">
+      {/* 1. Title */}
+      <h1 className="text-[40px] font-bold leading-[50px] text-center text-[#0A0A0A] font-Inter">
+        {item.title}
+      </h1>
+
+      {/* 2. Meta Information Row */}
+      <div className="flex flex-row items-center justify-center gap-4">
+        {/* 2.1.1 Time div */}
+        <div className="flex items-center gap-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M12 6V12H16.5M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+              stroke="#09090B"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="text-[#737373] font-Inter text-base font-normal leading-6">
+            {formatTimeAgo(item.date)}
+          </span>
+        </div>
+
+        {/* 2.1.2 Author div */}
+        <div className="flex items-center gap-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M4 22H20C20.5304 22 21.0391 21.7893 21.4142 21.4142C21.7893 21.0391 22 20.5304 22 20V4C22 3.46957 21.7893 2.96086 21.4142 2.58579C21.0391 2.21071 20.5304 2 20 2H8C7.46957 2 6.96086 2.21071 6.58579 2.58579C6.21071 2.96086 6 3.46957 6 4V20C6 20.5304 5.78929 21.0391 5.41421 21.4142C5.03914 21.7893 4.53043 22 4 22ZM4 22C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V11C2 9.9 2.9 9 4 9H6M18 14H10M15 18H10M10 6H18V10H10V6Z"
+              stroke="#020617"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="text-[#737373] font-Inter text-base font-medium leading-6">
+            From{" "}
+            {item.author && item.author[0] ? item.author[0].name : "Unknown"}
+          </span>
+        </div>
+      </div>
+
+      {/* 3. Feed Image */}
       {getImageUrl(item.image) && (
-        <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
+        <div className="mb-10">
           <img
             src={getImageUrl(item.image)!}
             alt={item.title}
-            className="w-full h-full object-cover"
+            className="w-full rounded-xl object-cover"
           />
         </div>
       )}
 
-      {/* Title */}
-      <h1 className="text-3xl font-bold text-black mb-6 font-inter">
-        {item.title}
-      </h1>
+      {/* 4. Content Paragraphs */}
+      {contentParagraphs.length > 0 && (
+        <div className="flex flex-col">
+          {/* First paragraph with special styling */}
+          <p className="text-[#737373] font-Inter text-2xl font-light leading-[39px] mb-8">
+            {contentParagraphs[0]}
+          </p>
 
-      {/* Meta Information */}
-      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-8 pb-6 border-b border-gray-200">
-        {item.author && item.author[0] && (
-          <span className="font-inter">By {item.author[0].name}</span>
-        )}
-        <time dateTime={item.date} className="font-inter">
-          {formatDate(item.date)}
-        </time>
-        {item.published && (
-          <span className="font-inter">
-            Published: {formatDate(item.published)}
-          </span>
-        )}
-      </div>
-
-      {/* Categories */}
-      {item.category && item.category.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-8">
-          {item.category.map((cat: any, idx: number) => (
-            <span
-              key={idx}
-              className="px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-700"
+          {/* Subsequent paragraphs */}
+          {contentParagraphs.slice(1).map((paragraph, index) => (
+            <p
+              key={index}
+              className="text-[#0A0A0A] font-Inter text-lg font-normal leading-[29.25px] mb-6"
             >
-              {cat.name}
-            </span>
+              {paragraph}
+            </p>
           ))}
         </div>
       )}
 
-      {/* Description */}
-      {item.description && (
-        <div className="mb-8">
-          <p className="text-lg text-gray-700 leading-relaxed font-inter">
+      {/* Fallback to description if no content */}
+      {!item.content && item.description && (
+        <div className="flex flex-col">
+          <p className="text-[#737373] font-Inter text-2xl font-light leading-[39px] mb-8">
             {item.description}
-          </p>
-        </div>
-      )}
-
-      {/* Content */}
-      {item.content && (
-        <div className="mb-8">
-          <div
-            className="prose prose-lg max-w-none font-inter"
-            dangerouslySetInnerHTML={{ __html: item.content }}
-          />
-        </div>
-      )}
-
-      {/* Action to read original */}
-      <div className="mb-8">
-        <a
-          href={item.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors font-inter"
-        >
-          Read Original Article
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
-        </a>
-      </div>
-
-      {/* Copyright */}
-      {item.copyright && (
-        <div className="pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-500 font-inter">
-            {item.copyright}
           </p>
         </div>
       )}
