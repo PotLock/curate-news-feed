@@ -1,31 +1,36 @@
 import { Button } from "../ui/button";
 import { Link } from "@tanstack/react-router";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "@tanstack/react-router";
+
+interface ArticleItem {
+  id: string;
+  title: string;
+  date: string;
+  published?: string;
+  author?: Array<{
+    name: string;
+    email?: string;
+    link?: string;
+    avatar?: string;
+  }>;
+  category?: Array<{
+    name: string;
+    domain?: string;
+    scheme?: string;
+    term?: string;
+  }>;
+  description?: string;
+  content?: string;
+  link: string;
+  image?:
+    | string
+    | { url: string; type?: string; length?: number; title?: string };
+  copyright?: string;
+}
 
 interface ReadingArticleProps {
-  item: {
-    title: string;
-    date: string;
-    published?: string;
-    author?: Array<{
-      name: string;
-      email?: string;
-      link?: string;
-      avatar?: string;
-    }>;
-    category?: Array<{
-      name: string;
-      domain?: string;
-      scheme?: string;
-      term?: string;
-    }>;
-    description?: string;
-    content?: string;
-    link: string;
-    image?:
-      | string
-      | { url: string; type?: string; length?: number; title?: string };
-    copyright?: string;
-  };
+  item: ArticleItem;
   feedId: string;
   prevItem?: {
     id: string;
@@ -39,6 +44,120 @@ interface ReadingArticleProps {
 }
 
 export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug }: ReadingArticleProps) {
+  const navigate = useNavigate();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const [startX, setStartX] = useState(0);
+  const [preloadedNext, setPreloadedNext] = useState<ArticleItem | null>(null);
+  const [preloadedPrev, setPreloadedPrev] = useState<ArticleItem | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Lazy load adjacent articles
+  useEffect(() => {
+    if (nextItem && !preloadedNext) {
+      // In a real implementation, you would fetch the full article data here
+      // For now, we'll use the basic item data with fallback content
+      setPreloadedNext({ 
+        ...item, 
+        id: nextItem.id, 
+        title: nextItem.title,
+        content: `This is the content for ${nextItem.title}. In a production app, this would be loaded from your API.`,
+        description: `Preview of ${nextItem.title}`
+      });
+    }
+    
+    if (prevItem && !preloadedPrev) {
+      setPreloadedPrev({ 
+        ...item, 
+        id: prevItem.id, 
+        title: prevItem.title,
+        content: `This is the content for ${prevItem.title}. In a production app, this would be loaded from your API.`,
+        description: `Preview of ${prevItem.title}`
+      });
+    }
+  }, [nextItem, prevItem, preloadedNext, preloadedPrev, item]);
+
+  const handleSwipeStart = (clientX: number) => {
+    setIsDragging(true);
+    setStartX(clientX);
+  };
+
+  const handleSwipeMove = (clientX: number) => {
+    if (!isDragging) return;
+    const deltaX = clientX - startX;
+    setDragX(deltaX);
+  };
+
+  const handleSwipeEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    const threshold = 100;
+    console.log('Swipe ended:', { dragX, threshold, prevItem: !!prevItem, nextItem: !!nextItem });
+    
+    if (Math.abs(dragX) > threshold) {
+      if (dragX > 0 && prevItem) {
+        // Swipe right - go to previous
+        console.log('Navigating to previous:', prevItem.title);
+        navigate({
+          to: "/reading/$feedId/$slug",
+          params: { feedId, slug: generateSlug(prevItem.title) },
+        });
+      } else if (dragX < 0 && nextItem) {
+        // Swipe left - go to next
+        console.log('Navigating to next:', nextItem.title);
+        navigate({
+          to: "/reading/$feedId/$slug",
+          params: { feedId, slug: generateSlug(nextItem.title) },
+        });
+      }
+    }
+    
+    setDragX(0);
+  };
+
+  // Mouse events
+  const handleMouseDown = (e: React.MouseEvent) => {
+    handleSwipeStart(e.clientX);
+  };
+
+  // Touch events
+  const handleTouchStart = (e: React.TouchEvent) => {
+    handleSwipeStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    handleSwipeMove(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    handleSwipeEnd();
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        const deltaX = e.clientX - startX;
+        setDragX(deltaX);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleSwipeEnd();
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging, startX, dragX, prevItem, nextItem]);
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -94,13 +213,12 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
     return [firstParagraph];
   };
 
-  const contentParagraphs = item.content ? parseContent(item.content) : [];
 
-  return (
-    <article className="w-full max-w-[660px] justify-center gap-[40px] flex flex-col">
+  const ArticleCard = ({ articleData, isBackground = false }: { articleData: ArticleItem, isBackground?: boolean }) => (
+    <article className={`w-full max-w-[660px] justify-center gap-[40px] flex flex-col ${isBackground ? 'opacity-30' : ''}`}>
       {/* 1. Title */}
       <h1 className="text-[40px] font-bold leading-[50px] text-center text-[#0A0A0A] font-Inter">
-        {item.title}
+        {articleData.title}
       </h1>
 
       {/* 2. Meta Information Row */}
@@ -122,7 +240,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
             />
           </svg>
           <span className="text-[#737373] font-Inter text-base font-normal leading-6">
-            {formatTimeAgo(item.date)}
+            {formatTimeAgo(articleData.date)}
           </span>
         </div>
 
@@ -144,32 +262,32 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           </svg>
           <span className="text-[#737373] font-Inter text-base font-medium leading-6">
             From{" "}
-            {item.author && item.author[0] ? item.author[0].name : "Unknown"}
+            {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
           </span>
         </div>
       </div>
 
       {/* 3. Feed Image */}
-      {getImageUrl(item.image) && (
+      {getImageUrl(articleData.image) && (
         <div className="mb-10">
           <img
-            src={getImageUrl(item.image)!}
-            alt={item.title}
+            src={getImageUrl(articleData.image)!}
+            alt={articleData.title}
             className="w-full rounded-xl object-cover"
           />
         </div>
       )}
 
       {/* 4. Content Paragraphs */}
-      {contentParagraphs.length > 0 && (
+      {parseContent(articleData.content || '').length > 0 && (
         <div className="flex flex-col">
           {/* First paragraph with special styling */}
           <p className="text-[#737373] font-Inter text-2xl font-light leading-[39px] mb-8">
-            {contentParagraphs[0]}
+            {parseContent(articleData.content || '')[0]}
           </p>
 
           {/* Subsequent paragraphs */}
-          {contentParagraphs.slice(1).map((paragraph, index) => (
+          {parseContent(articleData.content || '').slice(1).map((paragraph, index) => (
             <p
               key={index}
               className="text-[#0A0A0A] font-Inter text-lg font-normal leading-[29.25px] mb-6"
@@ -179,6 +297,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           ))}
         </div>
       )}
+      
       <div className="flex items-center h-[62px] justify-between border-t-[1px] border-[#E2E8F0]">
         <div className="flex gap-2 items-center justify-center">
           <svg
@@ -195,11 +314,11 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           </svg>
           <p className="text-base text-[#737373] leading-[24px]">
             Submitted by{" "}
-            {item.author && item.author[0] ? item.author[0].name : "Unknown"}
+            {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
           </p>
         </div>
         <Button asChild>
-          <a href={item.link} target="_blank" rel="noopener noreferrer">
+          <a href={articleData.link} target="_blank" rel="noopener noreferrer">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="17"
@@ -219,6 +338,75 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
         </Button>
       </div>
 
+      {/* Fallback to description if no content */}
+      {!articleData.content && articleData.description && (
+        <div className="flex flex-col">
+          <p className="text-[#737373] font-Inter text-2xl font-light leading-[39px] mb-8">
+            {articleData.description}
+          </p>
+        </div>
+      )}
+    </article>
+  );
+
+  return (
+    <div className="relative w-full max-w-[660px] overflow-hidden">
+      {/* Card Stack Container */}
+      <div
+        ref={cardRef}
+        className="relative cursor-grab active:cursor-grabbing"
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseLeave={() => {
+          if (isDragging) {
+            handleSwipeEnd();
+          }
+        }}
+        style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
+      >
+        {/* Background card (next article preview) */}
+        {preloadedNext && dragX < 0 && (
+          <div 
+            className="absolute inset-0 transform transition-transform duration-200 ease-out"
+            style={{
+              transform: `translateX(${Math.max(0, -dragX * 0.3)}px)`,
+              zIndex: 0,
+            }}
+          >
+            <ArticleCard articleData={preloadedNext} isBackground={true} />
+          </div>
+        )}
+        
+        {/* Background card (previous article preview) */}
+        {preloadedPrev && dragX > 0 && (
+          <div 
+            className="absolute inset-0 transform transition-transform duration-200 ease-out"
+            style={{
+              transform: `translateX(${Math.min(0, -dragX * 0.3)}px)`,
+              zIndex: 0,
+            }}
+          >
+            <ArticleCard articleData={preloadedPrev} isBackground={true} />
+          </div>
+        )}
+
+        {/* Main card (current article) */}
+        <div
+          className="relative transition-transform duration-200 ease-out"
+          style={{
+            transform: `translateX(${dragX}px)`,
+            zIndex: 1,
+          }}
+        >
+          <ArticleCard articleData={item} />
+        </div>
+      </div>
+      
       {/* Navigation Section */}
       <div className="flex w-[660px] px-[120px] py-[21px] flex-col items-center gap-[10px] rounded-b-[16px] bg-gradient-to-t from-black/15 via-transparent to-transparent">
         <div className="flex h-[65px] px-[24px] py-[12px] justify-center items-center gap-[8px] rounded-[45.5px] bg-white/90">
@@ -338,15 +526,6 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           </div>
         </div>
       </div>
-
-      {/* Fallback to description if no content */}
-      {!item.content && item.description && (
-        <div className="flex flex-col">
-          <p className="text-[#737373] font-Inter text-2xl font-light leading-[39px] mb-8">
-            {item.description}
-          </p>
-        </div>
-      )}
-    </article>
+    </div>
   );
 }
