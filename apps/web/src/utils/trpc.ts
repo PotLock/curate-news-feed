@@ -23,9 +23,7 @@ export const queryClient = new QueryClient({
 export const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
-      url: import.meta.env.VITE_SERVER_URL 
-        ? `${import.meta.env.VITE_SERVER_URL}/trpc`
-        : "/trpc", // Use relative URL in production
+      url: `${import.meta.env.VITE_SERVER_URL}/trpc`,
       fetch(url, options) {
         return fetch(url, {
           ...options,
