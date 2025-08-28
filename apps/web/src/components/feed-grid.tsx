@@ -313,7 +313,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
             </div>
 
             {/* Desktop: Original Bento Layout */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:flex lg:flex-col lg:gap-3">
               {(() => {
                 const rows = [];
                 let itemIndex = 0;
@@ -324,7 +324,11 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                   const rowItems = [];
 
                   // Always take exactly 3 items per row
-                  for (let i = 0; i < 3 && itemIndex < displayItems.length; i++) {
+                  for (
+                    let i = 0;
+                    i < 3 && itemIndex < displayItems.length;
+                    i++
+                  ) {
                     rowItems.push({
                       item: displayItems[itemIndex],
                       size: pattern[i],
@@ -334,7 +338,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                   }
 
                   rows.push(
-                    <div key={rowIndex} className="flex w-full gap-x-3">
+                    <div key={rowIndex} className="flex w-full gap-3 gap-y-3">
                       {rowItems.map(({ item, globalIndex }, cardIndex) => (
                         <Link
                           key={item.id || globalIndex}
@@ -350,100 +354,100 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                           <div className="flex flex-col gap-3">
                             {/* Info Div - Time and Author */}
                             <div className="w-full flex justify-between items-center">
-                            <span className="text-white/70 text-sm font-inter uppercase">
-                              {formatDate(item.date)}
-                            </span>
-                            {item.author && item.author[0] && (
                               <span className="text-white/70 text-sm font-inter uppercase">
-                                BY {item.author[0].name?.toUpperCase()}
+                                {formatDate(item.date)}
                               </span>
+                              {item.author && item.author[0] && (
+                                <span className="text-white/70 text-sm font-inter uppercase">
+                                  BY {item.author[0].name?.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-white text-2xl font-bold font-inter line-clamp-3">
+                              {item.title}
+                            </h3>
+
+                            {/* Description */}
+                            {item.description && (
+                              <p className="text-white/70 text-base leading-6 font-inter line-clamp-4">
+                                {item.description}
+                              </p>
                             )}
                           </div>
 
-                          {/* Title */}
-                          <h3 className="text-white text-2xl font-bold font-inter line-clamp-3">
-                            {item.title}
-                          </h3>
+                          {/* Industry Badges */}
+                          {item.category && item.category.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {(() => {
+                                const maxVisibleBadges = 2; // Show max 2 badges before overflow
+                                const visibleCategories = item.category!.slice(
+                                  0,
+                                  maxVisibleBadges
+                                );
+                                const hiddenCount =
+                                  item.category!.length - maxVisibleBadges;
 
-                          {/* Description */}
-                          {item.description && (
-                            <p className="text-white/70 text-base leading-6 font-inter line-clamp-4">
-                              {item.description}
-                            </p>
+                                // Get badge styling based on column position
+                                const getBadgeStyle = (columnIndex: number) => {
+                                  switch (columnIndex) {
+                                    case 0:
+                                      return {
+                                        backgroundColor: "#255459",
+                                        color: "#3E9A6D",
+                                      };
+                                    case 1:
+                                      return {
+                                        backgroundColor: "#1D4469",
+                                        color: "#BBC8D5",
+                                      };
+                                    case 2:
+                                      return {
+                                        backgroundColor: "#8C474B",
+                                        color: "#BBC8D5",
+                                      };
+                                    default:
+                                      return {
+                                        backgroundColor: "#255459",
+                                        color: "#3E9A6D",
+                                      };
+                                  }
+                                };
+
+                                const badgeStyle = getBadgeStyle(cardIndex);
+
+                                return (
+                                  <>
+                                    {visibleCategories.map((cat, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="px-2 py-1 text-xs font-medium rounded-md"
+                                        style={badgeStyle}
+                                      >
+                                        {cat.name}
+                                      </span>
+                                    ))}
+                                    {hiddenCount > 0 && (
+                                      <span
+                                        className="px-2 py-1 text-xs font-medium rounded-md"
+                                        style={badgeStyle}
+                                      >
+                                        +{hiddenCount} More
+                                      </span>
+                                    )}
+                                  </>
+                                );
+                              })()}
+                            </div>
                           )}
-                        </div>
+                        </Link>
+                      ))}
+                    </div>
+                  );
 
-                        {/* Industry Badges */}
-                        {item.category && item.category.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {(() => {
-                              const maxVisibleBadges = 2; // Show max 2 badges before overflow
-                              const visibleCategories = item.category!.slice(
-                                0,
-                                maxVisibleBadges
-                              );
-                              const hiddenCount =
-                                item.category!.length - maxVisibleBadges;
-
-                              // Get badge styling based on column position
-                              const getBadgeStyle = (columnIndex: number) => {
-                                switch (columnIndex) {
-                                  case 0:
-                                    return {
-                                      backgroundColor: "#255459",
-                                      color: "#3E9A6D",
-                                    };
-                                  case 1:
-                                    return {
-                                      backgroundColor: "#1D4469",
-                                      color: "#BBC8D5",
-                                    };
-                                  case 2:
-                                    return {
-                                      backgroundColor: "#8C474B",
-                                      color: "#BBC8D5",
-                                    };
-                                  default:
-                                    return {
-                                      backgroundColor: "#255459",
-                                      color: "#3E9A6D",
-                                    };
-                                }
-                              };
-
-                              const badgeStyle = getBadgeStyle(cardIndex);
-
-                              return (
-                                <>
-                                  {visibleCategories.map((cat, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="px-2 py-1 text-xs font-medium rounded-md"
-                                      style={badgeStyle}
-                                    >
-                                      {cat.name}
-                                    </span>
-                                  ))}
-                                  {hiddenCount > 0 && (
-                                    <span
-                                      className="px-2 py-1 text-xs font-medium rounded-md"
-                                      style={badgeStyle}
-                                    >
-                                      +{hiddenCount} More
-                                    </span>
-                                  )}
-                                </>
-                              );
-                            })()}
-                          </div>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-                );
-
-                rowIndex++;
-              }
+                  rowIndex++;
+                }
 
                 return rows;
               })()}

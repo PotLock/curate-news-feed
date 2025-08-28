@@ -16,7 +16,7 @@ function RouteComponent() {
           <FeedSidebar />
           <SidebarInset className="flex flex-col bg-[#FAFAFA] w-full">
             <Header />
-            <main className="flex-1 bg-[#FAFAFA] px-4 sm:px-6 lg:px-8">
+            <main className="flex-1 bg-[#FAFAFA] px-4 sm:px-6 lg:px-0">
               <Outlet />
             </main>
           </SidebarInset>

@@ -67,7 +67,10 @@ export function ReadingSettingsDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="flex items-center rounded-full touch-manipulation p-2 -m-2">
+        <Button
+          variant="ghost"
+          className="flex items-center rounded-full touch-manipulation p-2 -m-2"
+        >
           <SettingsIcon />
         </Button>
       </DialogTrigger>
@@ -86,8 +89,18 @@ export function ReadingSettingsDialog({
             className="w-full flex flex-col gap-[16px] sm:gap-[20px]"
           >
             <TabsList className="grid w-full grid-cols-2 h-auto">
-              <TabsTrigger value="reading-audio" className="text-sm sm:text-base py-2 sm:py-2.5">Reading & Audio</TabsTrigger>
-              <TabsTrigger value="general" className="text-sm sm:text-base py-2 sm:py-2.5">General</TabsTrigger>
+              <TabsTrigger
+                value="reading-audio"
+                className="text-sm sm:text-base py-2 sm:py-2.5"
+              >
+                Reading & Audio
+              </TabsTrigger>
+              <TabsTrigger
+                value="general"
+                className="text-sm sm:text-base py-2 sm:py-2.5"
+              >
+                General
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="reading-audio">
               <div className="flex flex-col gap-4">
@@ -131,7 +144,7 @@ export function ReadingSettingsDialog({
             </TabsContent>
           </Tabs>
         </div>
-        <DialogFooter className="px-[20px] sm:px-[26px] py-[18px] sm:py-[22px] flex flex-col sm:flex-row w-full justify-between items-center gap-3 sm:gap-0">
+        <DialogFooter className="px-[20px] sm:px-[26px] py-[18px] sm:py-[22px] flex flex-col sm:flex-row w-full justify-between! items-center gap-3 sm:gap-0">
           <p className="text-[#737373] text-sm leading-[20px] order-2 sm:order-1">
             Settings are automatically saved
           </p>
