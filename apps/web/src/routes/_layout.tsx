@@ -11,12 +11,12 @@ export const Route = createFileRoute("/_layout")({
 function RouteComponent() {
   return (
     <SearchProvider>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full" style={{ backgroundColor: '#FAFAFA' }}>
+      <SidebarProvider defaultOpen={true}>
+        <div className="min-h-screen flex w-full bg-[#FAFAFA]">
           <FeedSidebar />
-          <SidebarInset className="flex flex-col" style={{ backgroundColor: '#FAFAFA' }}>
+          <SidebarInset className="flex flex-col bg-[#FAFAFA] w-full">
             <Header />
-            <main className="flex-1" style={{ backgroundColor: '#FAFAFA' }}>
+            <main className="flex-1 bg-[#FAFAFA] px-4 sm:px-6 lg:px-8">
               <Outlet />
             </main>
           </SidebarInset>

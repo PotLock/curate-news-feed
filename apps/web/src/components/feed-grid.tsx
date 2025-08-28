@@ -89,13 +89,13 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
 
   if (!displayItems.length) {
     return (
-      <div className="container mx-auto p-6 max-w-[1440px]">
+      <div className="mx-auto p-4 sm:p-6 max-w-[1440px]">
         <div className="flex items-center justify-start">
           <div>
-            <h1 className="text-2xl font-bold text-black font-inter leading-8 m-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-black font-inter leading-6 sm:leading-8 m-0">
               {displayTitle}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground mt-2">
               {isSearchActive
                 ? `No articles found matching "${searchQuery}".`
                 : "No articles available in this feed."}
@@ -107,31 +107,31 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   }
 
   return (
-    <div className="container mx-auto max-w-[1440px] h-[calc(100svh-64px)] overflow-hidden">
-      <div className="p-6 h-full flex flex-col">
+    <div className="mx-auto max-w-[1440px] h-screen sm:h-[calc(100svh-64px)] overflow-hidden">
+      <div className="p-4 sm:p-6 h-full flex flex-col">
         {/* Feed Header */}
-        <div className="flex items-center justify-start mb-6 flex-shrink-0">
+        <div className="flex items-center justify-start mb-4 sm:mb-6 flex-shrink-0">
           <div className="w-full">
-            <h1 className="text-2xl font-bold text-black font-inter leading-8 m-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-black font-inter leading-6 sm:leading-8 m-0">
               {displayTitle}
             </h1>
             {feedDescription && (
-              <p className="text-base text-black font-inter leading-6 mt-2">
+              <p className="text-sm sm:text-base text-black font-inter leading-5 sm:leading-6 mt-2">
                 {feedDescription}
               </p>
             )}
 
             {/* Categories Section */}
-            <div className="mt-6">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide w-full">
+            <div className="mt-4 sm:mt-6">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide w-full pb-2">
                 <Badge
                   variant={
                     selectedCategory === "trending" ? "default" : "secondary"
                   }
                   className={
                     selectedCategory === "trending"
-                      ? "bg-black text-white border border-black font-inter text-base font-bold min-h-[35px] max-h-[35px] rounded-full py-[8.5px] px-4 cursor-pointer whitespace-nowrap flex-shrink-0"
-                      : "bg-white text-[#737373] border border-[#E2E8F0] font-inter text-base min-h-[35px] max-h-[35px] rounded-full py-[8.5px] px-4 cursor-pointer whitespace-nowrap flex-shrink-0"
+                      ? "bg-black text-white border border-black font-inter text-sm sm:text-base font-bold min-h-[32px] sm:min-h-[35px] max-h-[32px] sm:max-h-[35px] rounded-full py-2 sm:py-[8.5px] px-3 sm:px-4 cursor-pointer whitespace-nowrap flex-shrink-0 touch-manipulation"
+                      : "bg-white text-[#737373] border border-[#E2E8F0] font-inter text-sm sm:text-base min-h-[32px] sm:min-h-[35px] max-h-[32px] sm:max-h-[35px] rounded-full py-2 sm:py-[8.5px] px-3 sm:px-4 cursor-pointer whitespace-nowrap flex-shrink-0 touch-manipulation"
                   }
                   onClick={() => setSelectedCategory("trending")}
                 >
@@ -145,8 +145,8 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                     }
                     className={
                       selectedCategory === category
-                        ? "bg-black text-white border border-black font-inter text-base font-bold min-h-[35px] max-h-[35px] rounded-full py-[8.5px] px-4 cursor-pointer whitespace-nowrap flex-shrink-0"
-                        : "bg-white text-[#737373] border border-[#E2E8F0] font-inter text-base min-h-[35px] max-h-[35px] rounded-full py-[8.5px] px-4 cursor-pointer whitespace-nowrap flex-shrink-0"
+                        ? "bg-black text-white border border-black font-inter text-sm sm:text-base font-bold min-h-[32px] sm:min-h-[35px] max-h-[32px] sm:max-h-[35px] rounded-full py-2 sm:py-[8.5px] px-3 sm:px-4 cursor-pointer whitespace-nowrap flex-shrink-0 touch-manipulation"
+                        : "bg-white text-[#737373] border border-[#E2E8F0] font-inter text-sm sm:text-base min-h-[32px] sm:min-h-[35px] max-h-[32px] sm:max-h-[35px] rounded-full py-2 sm:py-[8.5px] px-3 sm:px-4 cursor-pointer whitespace-nowrap flex-shrink-0 touch-manipulation"
                     }
                     onClick={() => setSelectedCategory(category || "")}
                   >
@@ -160,44 +160,196 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
 
         {/* Scrollable Feed Grid Container */}
         <div className="overflow-y-auto relative rounded-lg">
-          {/* Feed Items Bento Grid - 3 columns per row */}
-          <div className="space-y-6 max-w-[1170px] pb-24">
-            {(() => {
-              const rows = [];
-              let itemIndex = 0;
-              let rowIndex = 0;
+          {/* Feed Items Responsive Grid */}
+          <div className="space-y-4 sm:space-y-6 max-w-[1170px] pb-24">
+            {/* Mobile: Single Column */}
+            <div className="block sm:hidden space-y-4">
+              {displayItems.map((item, index) => (
+                <Link
+                  key={item.id || index}
+                  to="/reading/$feedId/$slug"
+                  params={{
+                    feedId: feedId,
+                    slug: generateSlug(item.title),
+                  }}
+                  className="block p-6 h-[280px] rounded-lg w-full hover:opacity-90 transition-opacity cursor-pointer touch-manipulation"
+                  style={{ backgroundColor: getCardColor(index) }}
+                >
+                  <div className="flex flex-col justify-between h-full">
+                    {/* Content Section */}
+                    <div className="flex flex-col gap-3">
+                      {/* Info Div - Time and Author */}
+                      <div className="w-full flex justify-between items-center">
+                        <span className="text-white/70 text-xs font-inter uppercase">
+                          {formatDate(item.date)}
+                        </span>
+                        {item.author && item.author[0] && (
+                          <span className="text-white/70 text-xs font-inter uppercase">
+                            BY {item.author[0].name?.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
 
-              while (itemIndex < displayItems.length) {
-                const pattern = getRowPattern(rowIndex);
-                const rowItems = [];
+                      {/* Title */}
+                      <h3 className="text-white text-lg font-bold font-inter line-clamp-3">
+                        {item.title}
+                      </h3>
 
-                // Always take exactly 3 items per row
-                for (let i = 0; i < 3 && itemIndex < displayItems.length; i++) {
-                  rowItems.push({
-                    item: displayItems[itemIndex],
-                    size: pattern[i],
-                    globalIndex: itemIndex,
-                  });
-                  itemIndex++;
-                }
+                      {/* Description */}
+                      {item.description && (
+                        <p className="text-white/70 text-sm leading-5 font-inter line-clamp-3">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
 
-                rows.push(
-                  <div key={rowIndex} className="flex w-full gap-x-3">
-                    {rowItems.map(({ item, globalIndex }, cardIndex) => (
-                      <Link
-                        key={item.id || globalIndex}
-                        to="/reading/$feedId/$slug"
-                        params={{
-                          feedId: feedId,
-                          slug: generateSlug(item.title),
-                        }}
-                        className={`py-[46px] px-[24px] h-[358px] rounded-lg min-w-[282px] flex flex-col justify-between ${cardIndex === 0 ? "max-w-[500px]" : "flex-1"} hover:opacity-90 transition-opacity cursor-pointer`}
-                        style={{ backgroundColor: getCardColor(globalIndex) }}
-                      >
-                        {/* Content Section */}
-                        <div className="flex flex-col gap-3">
-                          {/* Info Div - Time and Author */}
-                          <div className="w-full flex justify-between items-center">
+                    {/* Industry Badges */}
+                    {item.category && item.category.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {item.category.slice(0, 2).map((cat, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 text-xs font-medium rounded-md"
+                            style={{
+                              backgroundColor: "#255459",
+                              color: "#3E9A6D",
+                            }}
+                          >
+                            {cat.name}
+                          </span>
+                        ))}
+                        {item.category.length > 2 && (
+                          <span
+                            className="px-2 py-1 text-xs font-medium rounded-md"
+                            style={{
+                              backgroundColor: "#255459",
+                              color: "#3E9A6D",
+                            }}
+                          >
+                            +{item.category.length - 2} More
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Tablet: Two Columns */}
+            <div className="hidden sm:block lg:hidden">
+              <div className="grid grid-cols-2 gap-4">
+                {displayItems.map((item, index) => (
+                  <Link
+                    key={item.id || index}
+                    to="/reading/$feedId/$slug"
+                    params={{
+                      feedId: feedId,
+                      slug: generateSlug(item.title),
+                    }}
+                    className="p-6 h-[320px] rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+                    style={{ backgroundColor: getCardColor(index) }}
+                  >
+                    <div className="flex flex-col justify-between h-full">
+                      {/* Content Section */}
+                      <div className="flex flex-col gap-3">
+                        {/* Info Div - Time and Author */}
+                        <div className="w-full flex justify-between items-center">
+                          <span className="text-white/70 text-sm font-inter uppercase">
+                            {formatDate(item.date)}
+                          </span>
+                          {item.author && item.author[0] && (
+                            <span className="text-white/70 text-sm font-inter uppercase">
+                              BY {item.author[0].name?.toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-white text-xl font-bold font-inter line-clamp-3">
+                          {item.title}
+                        </h3>
+
+                        {/* Description */}
+                        {item.description && (
+                          <p className="text-white/70 text-base leading-6 font-inter line-clamp-3">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Industry Badges */}
+                      {item.category && item.category.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {item.category.slice(0, 2).map((cat, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 text-xs font-medium rounded-md"
+                              style={{
+                                backgroundColor: "#1D4469",
+                                color: "#BBC8D5",
+                              }}
+                            >
+                              {cat.name}
+                            </span>
+                          ))}
+                          {item.category.length > 2 && (
+                            <span
+                              className="px-2 py-1 text-xs font-medium rounded-md"
+                              style={{
+                                backgroundColor: "#1D4469",
+                                color: "#BBC8D5",
+                              }}
+                            >
+                              +{item.category.length - 2} More
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop: Original Bento Layout */}
+            <div className="hidden lg:block">
+              {(() => {
+                const rows = [];
+                let itemIndex = 0;
+                let rowIndex = 0;
+
+                while (itemIndex < displayItems.length) {
+                  const pattern = getRowPattern(rowIndex);
+                  const rowItems = [];
+
+                  // Always take exactly 3 items per row
+                  for (let i = 0; i < 3 && itemIndex < displayItems.length; i++) {
+                    rowItems.push({
+                      item: displayItems[itemIndex],
+                      size: pattern[i],
+                      globalIndex: itemIndex,
+                    });
+                    itemIndex++;
+                  }
+
+                  rows.push(
+                    <div key={rowIndex} className="flex w-full gap-x-3">
+                      {rowItems.map(({ item, globalIndex }, cardIndex) => (
+                        <Link
+                          key={item.id || globalIndex}
+                          to="/reading/$feedId/$slug"
+                          params={{
+                            feedId: feedId,
+                            slug: generateSlug(item.title),
+                          }}
+                          className={`py-[46px] px-[24px] h-[358px] rounded-lg min-w-[282px] flex flex-col justify-between ${cardIndex === 0 ? "max-w-[500px]" : "flex-1"} hover:opacity-90 transition-opacity cursor-pointer`}
+                          style={{ backgroundColor: getCardColor(globalIndex) }}
+                        >
+                          {/* Content Section */}
+                          <div className="flex flex-col gap-3">
+                            {/* Info Div - Time and Author */}
+                            <div className="w-full flex justify-between items-center">
                             <span className="text-white/70 text-sm font-inter uppercase">
                               {formatDate(item.date)}
                             </span>
@@ -293,12 +445,13 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                 rowIndex++;
               }
 
-              return rows;
-            })()}
+                return rows;
+              })()}
+            </div>
           </div>
 
           {/* Sticky Bottom CTA */}
-          <div className="sticky bottom-0 h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0 rounded-b-lg z-10">
+          <div className="sticky bottom-0 h-20 sm:h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0 rounded-b-lg z-10">
             {displayItems.length > 0 && feedId && (
               <Link
                 to="/reading/$feedId/$slug"
@@ -306,16 +459,16 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                   feedId: feedId,
                   slug: generateSlug(displayItems[0].title),
                 }}
-                className="flex items-center justify-center gap-2 w-[229px] px-6 py-3 bg-white/10 text-white font-inter text-xl font-medium leading-[37.333px] rounded-[45.5px] hover:bg-white/20 transition-colors border-t border-b border-white"
+                className="flex items-center justify-center gap-2 w-[200px] sm:w-[229px] px-4 sm:px-6 py-3 bg-white/10 text-white font-inter text-lg sm:text-xl font-medium leading-6 sm:leading-[37.333px] rounded-[45.5px] hover:bg-white/20 transition-colors border-t border-b border-white touch-manipulation"
               >
                 Start Reading
-                <ArrowRight size={21} />
+                <ArrowRight size={18} className="sm:w-[21px] sm:h-[21px]" />
               </Link>
             )}
             {displayItems.length > 0 && !feedId && (
-              <div className="flex items-center justify-center gap-2 w-[229px] px-6 py-3 bg-white/5 text-white/50 font-inter text-xl font-medium leading-[37.333px] rounded-[45.5px] cursor-not-allowed">
+              <div className="flex items-center justify-center gap-2 w-[200px] sm:w-[229px] px-4 sm:px-6 py-3 bg-white/5 text-white/50 font-inter text-lg sm:text-xl font-medium leading-6 sm:leading-[37.333px] rounded-[45.5px] cursor-not-allowed">
                 Start Reading
-                <ArrowRight size={21} />
+                <ArrowRight size={18} className="sm:w-[21px] sm:h-[21px]" />
               </div>
             )}
           </div>

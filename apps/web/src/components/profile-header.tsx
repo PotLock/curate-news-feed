@@ -9,7 +9,7 @@ export default function ProfileHeader() {
 
   return (
     <header className="bg-white">
-      <div className="flex h-[69px] items-center justify-between px-8 py-[10px]">
+      <div className="flex h-[69px] items-center justify-between px-4 sm:px-8 py-[10px]">
         {/* Logo - Left Side */}
         <div className="flex items-center">
           <img src={logoImg} alt="Curate.fun Logo" className="h-8 w-auto" />
@@ -21,6 +21,7 @@ export default function ProfileHeader() {
             variant="outline" 
             size="sm"
             onClick={() => setIsSubmitNewsOpen(true)}
+            className="hidden sm:inline-flex"
           >
             Submit News
           </Button>

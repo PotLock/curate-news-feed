@@ -96,17 +96,17 @@ function RouteComponent() {
         <ProfileHeader />
         
         {/* Gap between header and content */}
-        <div className="pt-[77px] px-8 max-w-[1072px] mx-auto">
+        <div className="pt-[77px] px-4 sm:px-6 lg:px-8 max-w-[1072px] mx-auto">
           {/* Profile Card Loading State */}
-          <div className="flex p-6 flex-col items-center self-stretch rounded-[14px] border border-[#E5E5E5] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
-            <div className="flex items-center gap-4 w-full">
+          <div className="flex p-4 sm:p-6 flex-col items-center self-stretch rounded-[14px] border border-[#E5E5E5] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full">
               {/* Profile Image Skeleton */}
               <div className="flex-shrink-0">
                 <Skeleton className="w-20 h-20 rounded-full" />
               </div>
               
               {/* Profile Info Skeleton */}
-              <div className="flex flex-col items-start gap-[11px] w-[568px]">
+              <div className="flex flex-col items-center sm:items-start gap-[11px] w-full sm:w-[568px]">
                 <Skeleton className="h-8 w-48" />
                 <Skeleton className="h-6 w-full" />
                 <Skeleton className="h-5 w-32" />
@@ -123,10 +123,10 @@ function RouteComponent() {
       <ProfileHeader />
       
       {/* Gap between header and content */}
-      <div className="pt-[77px] px-8 max-w-[1072px] mx-auto">
+      <div className="pt-[77px] px-4 sm:px-6 lg:px-8 max-w-[1072px] mx-auto">
         {/* Profile Card */}
-        <div className="flex p-6 flex-col items-center self-stretch rounded-[14px] border border-[#E5E5E5] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
-          <div className="flex items-center gap-4 w-full">
+        <div className="flex p-4 sm:p-6 flex-col items-center self-stretch rounded-[14px] border border-[#E5E5E5] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full">
             {/* Profile Image */}
             <div className="flex-shrink-0">
               {profileData.profileImage ? (
@@ -146,7 +146,7 @@ function RouteComponent() {
             </div>
             
             {/* Profile Info */}
-            <div className="flex flex-col items-start gap-[11px] w-[568px]">
+            <div className="flex flex-col items-center sm:items-start gap-[11px] w-full sm:w-[568px] text-center sm:text-left">
               {/* Profile Name */}
               <h1 className="text-[#0A0A0A] font-inter text-2xl font-bold leading-8">
                 {profileData.name}
@@ -184,9 +184,9 @@ function RouteComponent() {
             
             <TabsContent value="overview" className="mt-6">
               {/* Three Metric Cards */}
-              <div className="flex gap-6">
+              <div className="flex flex-col lg:flex-row gap-6">
                 {/* Articles Read Card */}
-                <div className="w-[357px] h-48 rounded-xl bg-gradient-to-br from-[#2B7FFF] to-[#155DFC] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] p-6">
+                <div className="w-full lg:w-[357px] h-48 rounded-xl bg-gradient-to-br from-[#2B7FFF] to-[#155DFC] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] p-6">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex p-3 items-center gap-[10px] rounded-[14px] bg-white/20 backdrop-blur-[4px]">
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
@@ -206,7 +206,7 @@ function RouteComponent() {
                 </div>
 
                 {/* Articles Liked Card */}
-                <div className="w-[357px] h-48 rounded-xl bg-gradient-to-br from-[#00C950] to-[#096] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] p-6">
+                <div className="w-full lg:w-[357px] h-48 rounded-xl bg-gradient-to-br from-[#00C950] to-[#096] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] p-6">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex p-3 items-center gap-[10px] rounded-[14px] bg-white/20 backdrop-blur-[4px]">
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">
@@ -222,7 +222,7 @@ function RouteComponent() {
                 </div>
 
                 {/* News Today Card */}
-                <div className="w-[357px] h-48 rounded-xl bg-gradient-to-br from-[#AD46FF] to-[#9810FA] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] p-6">
+                <div className="w-full lg:w-[357px] h-48 rounded-xl bg-gradient-to-br from-[#AD46FF] to-[#9810FA] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] p-6">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex p-3 items-center gap-[10px] rounded-[14px] bg-white/20 backdrop-blur-[4px]">
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="33" viewBox="0 0 32 33" fill="none">

@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSearch } from "@/contexts/search-context";
 import { SubmitNewsPopup } from "./SubmitNewsPopup";
+import { SidebarTrigger } from "./ui/sidebar";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,9 +15,21 @@ export default function Header() {
   const { searchQuery, setSearchQuery } = useSearch();
 
   return (
-    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Search Bar - Left Side */}
+        {/* Mobile Layout - Sidebar Trigger + Search */}
+        <div className="flex items-center gap-3 md:hidden">
+          <SidebarTrigger />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+          </Button>
+        </div>
+
+        {/* Desktop Search Bar - Left Side */}
         <div className="hidden md:flex flex-1 max-w-md mr-8">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -29,16 +42,6 @@ export default function Header() {
             />
           </div>
         </div>
-
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden mr-auto"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
         
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
@@ -46,10 +49,11 @@ export default function Header() {
             variant="outline" 
             size="sm"
             onClick={() => setIsSubmitNewsOpen(true)}
+            className="hidden sm:inline-flex"
           >
             Submit News
           </Button>
-          <ModeToggle />
+          <ModeToggle className="hidden sm:inline-flex" />
           <UserMenu />
         </div>
       </div>
@@ -70,15 +74,25 @@ export default function Header() {
               />
             </div>
 
-            {/* Submit News Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full"
-              onClick={() => setIsSubmitNewsOpen(true)}
-            >
-              Submit News
-            </Button>
+            {/* Mobile Actions */}
+            <div className="flex flex-col space-y-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => {
+                  setIsSubmitNewsOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                Submit News
+              </Button>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Theme</span>
+                <ModeToggle />
+              </div>
+            </div>
           </div>
         </div>
       )}

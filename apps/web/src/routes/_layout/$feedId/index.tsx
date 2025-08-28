@@ -33,28 +33,67 @@ function FeedPage() {
 
   if (isLoading || isFetching) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="mx-auto max-w-[1440px] p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Loading Header */}
-        <div className="text-center space-y-2">
-          <Skeleton className="h-8 w-64 mx-auto" />
-          <Skeleton className="h-4 w-32 mx-auto" />
+        <div className="space-y-2">
+          <Skeleton className="h-6 sm:h-8 w-48 sm:w-64" />
+          <Skeleton className="h-4 w-32" />
         </div>
 
-        {/* Loading Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Loading Categories */}
+        <div className="flex gap-2 overflow-hidden">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-20 rounded-full flex-shrink-0" />
+          ))}
+        </div>
+
+        {/* Mobile Loading: Single Column */}
+        <div className="block sm:hidden space-y-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="border rounded-lg p-4 space-y-4">
-              <Skeleton className="aspect-video w-full" />
+            <div key={i} className="rounded-lg p-4 space-y-3">
+              <Skeleton className="h-[200px] w-full rounded-lg" />
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
               </div>
               <div className="flex gap-2">
-                <Skeleton className="h-6 w-16" />
-                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-6 w-16 rounded-md" />
+                <Skeleton className="h-6 w-20 rounded-md" />
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Tablet Loading: Two Columns */}
+        <div className="hidden sm:block lg:hidden">
+          <div className="grid grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-lg p-4 space-y-3">
+                <Skeleton className="h-[240px] w-full rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-16 rounded-md" />
+                  <Skeleton className="h-6 w-20 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Loading: Three Columns */}
+        <div className="hidden lg:block">
+          <div className="space-y-6">
+            {Array.from({ length: 2 }).map((rowIndex) => (
+              <div key={rowIndex} className="flex gap-3">
+                <Skeleton className="h-[358px] max-w-[500px] flex-1 rounded-lg" />
+                <Skeleton className="h-[358px] flex-1 rounded-lg" />
+                <Skeleton className="h-[358px] flex-1 rounded-lg" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -62,17 +101,17 @@ function FeedPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400">
+      <div className="mx-auto max-w-[1440px] p-4 sm:p-6">
+        <div className="text-center space-y-4 py-12">
+          <h1 className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
             Error Loading Feed
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
             {error.message || "Failed to load the RSS feed. Please try again later."}
           </p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors touch-manipulation"
           >
             Try Again
           </button>
@@ -83,10 +122,10 @@ function FeedPage() {
 
   if (!data || !data.items || data.items.length === 0) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">No Feed Data Available</h1>
-          <p className="text-muted-foreground">
+      <div className="mx-auto max-w-[1440px] p-4 sm:p-6">
+        <div className="text-center space-y-4 py-12">
+          <h1 className="text-xl sm:text-2xl font-bold">No Feed Data Available</h1>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
             This feed appears to be empty or is still loading. Please try refreshing the page.
           </p>
         </div>
