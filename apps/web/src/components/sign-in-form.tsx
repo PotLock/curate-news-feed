@@ -56,7 +56,7 @@ export default function SignInForm() {
           onSuccess: () => {
             setIsSigningInWithNear(false);
             navigate({
-              to: search.redirect || "/dashboard",
+              to: search.redirect || "/profile",
               replace: true,
             });
             toast.success(`Signed in as: ${accountId}`);

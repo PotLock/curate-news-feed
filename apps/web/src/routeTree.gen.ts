@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutAuthenticatedRouteImport } from './routes/_layout/_authenticated'
 import { Route as LayoutFeedIdIndexRouteImport } from './routes/_layout/$feedId/index'
 import { Route as ReadingFeedIdSlugRouteImport } from './routes/reading/$feedId/$slug'
-import { Route as LayoutAuthenticatedDashboardRouteImport } from './routes/_layout/_authenticated/dashboard'
 import { Route as LayoutFeedIdItemIdRouteImport } from './routes/_layout/$feedId/$itemId'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -46,12 +51,6 @@ const ReadingFeedIdSlugRoute = ReadingFeedIdSlugRouteImport.update({
   path: '/reading/$feedId/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutAuthenticatedDashboardRoute =
-  LayoutAuthenticatedDashboardRouteImport.update({
-    id: '/dashboard',
-    path: '/dashboard',
-    getParentRoute: () => LayoutAuthenticatedRoute,
-  } as any)
 const LayoutFeedIdItemIdRoute = LayoutFeedIdItemIdRouteImport.update({
   id: '/$feedId/$itemId',
   path: '/$feedId/$itemId',
@@ -60,17 +59,17 @@ const LayoutFeedIdItemIdRoute = LayoutFeedIdItemIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/': typeof LayoutIndexRoute
   '/$feedId/$itemId': typeof LayoutFeedIdItemIdRoute
-  '/dashboard': typeof LayoutAuthenticatedDashboardRoute
   '/reading/$feedId/$slug': typeof ReadingFeedIdSlugRoute
   '/$feedId': typeof LayoutFeedIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/': typeof LayoutIndexRoute
   '/$feedId/$itemId': typeof LayoutFeedIdItemIdRoute
-  '/dashboard': typeof LayoutAuthenticatedDashboardRoute
   '/reading/$feedId/$slug': typeof ReadingFeedIdSlugRoute
   '/$feedId': typeof LayoutFeedIdIndexRoute
 }
@@ -78,10 +77,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/login': typeof LoginRoute
-  '/_layout/_authenticated': typeof LayoutAuthenticatedRouteWithChildren
+  '/profile': typeof ProfileRoute
+  '/_layout/_authenticated': typeof LayoutAuthenticatedRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/$feedId/$itemId': typeof LayoutFeedIdItemIdRoute
-  '/_layout/_authenticated/dashboard': typeof LayoutAuthenticatedDashboardRoute
   '/reading/$feedId/$slug': typeof ReadingFeedIdSlugRoute
   '/_layout/$feedId/': typeof LayoutFeedIdIndexRoute
 }
@@ -89,27 +88,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/login'
+    | '/profile'
     | '/'
     | '/$feedId/$itemId'
-    | '/dashboard'
     | '/reading/$feedId/$slug'
     | '/$feedId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/profile'
     | '/'
     | '/$feedId/$itemId'
-    | '/dashboard'
     | '/reading/$feedId/$slug'
     | '/$feedId'
   id:
     | '__root__'
     | '/_layout'
     | '/login'
+    | '/profile'
     | '/_layout/_authenticated'
     | '/_layout/'
     | '/_layout/$feedId/$itemId'
-    | '/_layout/_authenticated/dashboard'
     | '/reading/$feedId/$slug'
     | '/_layout/$feedId/'
   fileRoutesById: FileRoutesById
@@ -117,11 +116,19 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
   ReadingFeedIdSlugRoute: typeof ReadingFeedIdSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -164,13 +171,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadingFeedIdSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_layout/_authenticated/dashboard': {
-      id: '/_layout/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardRouteImport
-      parentRoute: typeof LayoutAuthenticatedRoute
-    }
     '/_layout/$feedId/$itemId': {
       id: '/_layout/$feedId/$itemId'
       path: '/$feedId/$itemId'
@@ -181,26 +181,15 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface LayoutAuthenticatedRouteChildren {
-  LayoutAuthenticatedDashboardRoute: typeof LayoutAuthenticatedDashboardRoute
-}
-
-const LayoutAuthenticatedRouteChildren: LayoutAuthenticatedRouteChildren = {
-  LayoutAuthenticatedDashboardRoute: LayoutAuthenticatedDashboardRoute,
-}
-
-const LayoutAuthenticatedRouteWithChildren =
-  LayoutAuthenticatedRoute._addFileChildren(LayoutAuthenticatedRouteChildren)
-
 interface LayoutRouteChildren {
-  LayoutAuthenticatedRoute: typeof LayoutAuthenticatedRouteWithChildren
+  LayoutAuthenticatedRoute: typeof LayoutAuthenticatedRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutFeedIdItemIdRoute: typeof LayoutFeedIdItemIdRoute
   LayoutFeedIdIndexRoute: typeof LayoutFeedIdIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutAuthenticatedRoute: LayoutAuthenticatedRouteWithChildren,
+  LayoutAuthenticatedRoute: LayoutAuthenticatedRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutFeedIdItemIdRoute: LayoutFeedIdItemIdRoute,
   LayoutFeedIdIndexRoute: LayoutFeedIdIndexRoute,
@@ -212,6 +201,7 @@ const LayoutRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
   ReadingFeedIdSlugRoute: ReadingFeedIdSlugRoute,
 }
 export const routeTree = rootRouteImport

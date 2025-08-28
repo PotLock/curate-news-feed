@@ -6,9 +6,11 @@ import { UserMenu } from "./user-menu";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSearch } from "@/contexts/search-context";
+import { SubmitNewsPopup } from "./SubmitNewsPopup";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSubmitNewsOpen, setIsSubmitNewsOpen] = useState(false);
   const { searchQuery, setSearchQuery } = useSearch();
 
   return (
@@ -40,7 +42,11 @@ export default function Header() {
         
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsSubmitNewsOpen(true)}
+          >
             Submit News
           </Button>
           <ModeToggle />
@@ -65,12 +71,23 @@ export default function Header() {
             </div>
 
             {/* Submit News Button */}
-            <Button variant="outline" size="sm" className="w-full">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={() => setIsSubmitNewsOpen(true)}
+            >
               Submit News
             </Button>
           </div>
         </div>
       )}
+      
+      {/* Submit News Popup */}
+      <SubmitNewsPopup 
+        isOpen={isSubmitNewsOpen} 
+        onOpenChange={setIsSubmitNewsOpen}
+      />
     </header>
   );
 }

@@ -27,6 +27,13 @@ export function ReadingHeader({
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [textToSpeech, setTextToSpeech] = useState(false);
   const [voiceSettings, setVoiceSettings] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [showImages, setShowImages] = useState(true);
+  const [readingReminders, setReadingReminders] = useState(false);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [analytics, setAnalytics] = useState(true);
+  const [personalizedRecommendations, setPersonalizedRecommendations] =
+    useState(true);
 
   return (
     <div className="w-full flex max-w-[785px] items-center justify-between mb-8">
@@ -59,6 +66,18 @@ export function ReadingHeader({
             onTextToSpeechChange={setTextToSpeech}
             voiceSettings={voiceSettings}
             onVoiceSettingsChange={setVoiceSettings}
+            darkMode={darkMode}
+            onDarkModeChange={setDarkMode}
+            showImages={showImages}
+            onShowImagesChange={setShowImages}
+            readingReminders={readingReminders}
+            onReadingRemindersChange={setReadingReminders}
+            weeklyDigest={weeklyDigest}
+            onWeeklyDigestChange={setWeeklyDigest}
+            analytics={analytics}
+            onAnalyticsChange={setAnalytics}
+            personalizedRecommendations={personalizedRecommendations}
+            onPersonalizedRecommendationsChange={setPersonalizedRecommendations}
           />
         </div>
       </div>
