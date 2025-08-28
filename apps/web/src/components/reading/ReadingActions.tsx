@@ -2,15 +2,16 @@ import { Button } from "@/components/ui/button";
 
 export function ReadingActions() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-row lg:flex-col gap-3 lg:gap-4 justify-center lg:justify-start">
       <Button
         variant="outline"
-        className="bg-[#FFFFFFF2] border-[0.66px] p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto"
+        className="bg-[#FFFFFFF2] border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="18"
+          height="18"
+          className="lg:w-5 lg:h-5"
           viewBox="0 0 20 20"
           fill="none"
         >
@@ -28,12 +29,13 @@ export function ReadingActions() {
       </Button>
       <Button
         variant="outline"
-        className="bg-[#FFFFFFF2] border-[0.66px] p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto"
+        className="bg-[#FFFFFFF2] border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="18"
+          height="18"
+          className="lg:w-5 lg:h-5"
           viewBox="0 0 20 20"
           fill="none"
         >
@@ -63,12 +65,13 @@ export function ReadingActions() {
       </Button>
       <Button
         variant="outline"
-        className="bg-[#FFFFFFF2] border-[0.66px] p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto"
+        className="bg-[#FFFFFFF2] border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="18"
+          height="18"
+          className="lg:w-5 lg:h-5"
           viewBox="0 0 20 20"
           fill="none"
         >
@@ -94,12 +97,13 @@ export function ReadingActions() {
       </Button>
       <Button
         variant="outline"
-        className="bg-[#FFFFFFF2] border-[0.66px] p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto"
+        className="bg-[#FFFFFFF2] border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="18"
+          height="18"
+          className="lg:w-5 lg:h-5"
           viewBox="0 0 20 20"
           fill="none"
         >

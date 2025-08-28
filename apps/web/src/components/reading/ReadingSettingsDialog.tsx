@@ -67,27 +67,27 @@ export function ReadingSettingsDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="flex items-center rounded-full">
+        <Button variant="ghost" className="flex items-center rounded-full touch-manipulation p-2 -m-2">
           <SettingsIcon />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] max-h-[710px] overflow-scroll gap-0 rounded-[10px] p-0">
-        <DialogHeader className="border-b-[0.667px] border-b-[#E5E5E5] px-[30px] py-[20px]">
+      <DialogContent className="w-[95vw] sm:max-w-[425px] max-h-[85vh] sm:max-h-[710px] overflow-y-auto gap-0 rounded-[10px] p-0">
+        <DialogHeader className="border-b-[0.667px] border-b-[#E5E5E5] px-[20px] sm:px-[30px] py-[16px] sm:py-[20px]">
           <DialogTitle className="flex items-center gap-3">
             <SettingsLargeIcon />
-            <p className="font-Inter text-[24px] leading-[30px] font-bold">
+            <p className="font-Inter text-[20px] sm:text-[24px] leading-[26px] sm:leading-[30px] font-bold">
               Settings
             </p>
           </DialogTitle>
         </DialogHeader>
-        <div className="px-[30px] py-[20px]">
+        <div className="px-[20px] sm:px-[30px] py-[16px] sm:py-[20px]">
           <Tabs
             defaultValue="reading-audio"
-            className="w-full flex flex-col gap-[20px]"
+            className="w-full flex flex-col gap-[16px] sm:gap-[20px]"
           >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="reading-audio">Reading & Audio</TabsTrigger>
-              <TabsTrigger value="general">General</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-auto">
+              <TabsTrigger value="reading-audio" className="text-sm sm:text-base py-2 sm:py-2.5">Reading & Audio</TabsTrigger>
+              <TabsTrigger value="general" className="text-sm sm:text-base py-2 sm:py-2.5">General</TabsTrigger>
             </TabsList>
             <TabsContent value="reading-audio">
               <div className="flex flex-col gap-4">
@@ -131,11 +131,11 @@ export function ReadingSettingsDialog({
             </TabsContent>
           </Tabs>
         </div>
-        <DialogFooter className="px-[26px] py-[22px] flex w-full justify-between! items-center">
-          <p className="text-[#737373] text-sm leading-[20px]">
+        <DialogFooter className="px-[20px] sm:px-[26px] py-[18px] sm:py-[22px] flex flex-col sm:flex-row w-full justify-between items-center gap-3 sm:gap-0">
+          <p className="text-[#737373] text-sm leading-[20px] order-2 sm:order-1">
             Settings are automatically saved
           </p>
-          <Button>
+          <Button className="w-full sm:w-auto order-1 sm:order-2 touch-manipulation">
             <PlusIcon />
             Done
           </Button>

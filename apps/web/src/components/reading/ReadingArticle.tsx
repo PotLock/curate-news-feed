@@ -92,7 +92,8 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
     if (!isDragging) return;
     setIsDragging(false);
     
-    const threshold = 100;
+    // More sensitive threshold for mobile
+    const threshold = window.innerWidth < 640 ? 80 : 100;
     console.log('Swipe ended:', { dragX, threshold, prevItem: !!prevItem, nextItem: !!nextItem });
     
     if (Math.abs(dragX) > threshold) {
@@ -123,14 +124,19 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
 
   // Touch events
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     handleSwipeStart(e.touches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    handleSwipeMove(e.touches[0].clientX);
+    e.preventDefault();
+    if (isDragging) {
+      handleSwipeMove(e.touches[0].clientX);
+    }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
     handleSwipeEnd();
   };
 
@@ -215,14 +221,14 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
 
 
   const ArticleCard = ({ articleData, isBackground = false }: { articleData: ArticleItem, isBackground?: boolean }) => (
-    <article className={`w-full max-w-[660px] justify-center gap-[40px] flex flex-col ${isBackground ? 'opacity-30' : ''}`}>
+    <article className={`w-full max-w-[660px] justify-center gap-[24px] sm:gap-[32px] lg:gap-[40px] flex flex-col ${isBackground ? 'opacity-30' : ''}`}>
       {/* 1. Title */}
-      <h1 className="text-[40px] font-bold leading-[50px] text-center text-[#0A0A0A] font-Inter">
+      <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-tight sm:leading-[40px] lg:leading-[50px] text-center text-[#0A0A0A] font-Inter px-4 sm:px-0">
         {articleData.title}
       </h1>
 
       {/* 2. Meta Information Row */}
-      <div className="flex flex-row items-center justify-center gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 sm:px-0">
         {/* 2.1.1 Time div */}
         <div className="flex items-center gap-1">
           <svg
@@ -239,7 +245,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-[#737373] font-Inter text-base font-normal leading-6">
+          <span className="text-[#737373] font-Inter text-sm sm:text-base font-normal leading-6">
             {formatTimeAgo(articleData.date)}
           </span>
         </div>
@@ -260,7 +266,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-[#737373] font-Inter text-base font-medium leading-6">
+          <span className="text-[#737373] font-Inter text-sm sm:text-base font-medium leading-6">
             From{" "}
             {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
           </span>
@@ -269,20 +275,20 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
 
       {/* 3. Feed Image */}
       {getImageUrl(articleData.image) && (
-        <div className="mb-10">
+        <div className="mb-6 sm:mb-8 lg:mb-10 px-4 sm:px-0">
           <img
             src={getImageUrl(articleData.image)!}
             alt={articleData.title}
-            className="w-full rounded-xl object-cover"
+            className="w-full rounded-lg sm:rounded-xl object-cover max-h-[300px] sm:max-h-[400px] lg:max-h-none"
           />
         </div>
       )}
 
       {/* 4. Content Paragraphs */}
       {parseContent(articleData.content || '').length > 0 && (
-        <div className="flex flex-col">
+        <div className="flex flex-col px-4 sm:px-0">
           {/* First paragraph with special styling */}
-          <p className="text-[#737373] font-Inter text-2xl font-light leading-[39px] mb-8">
+          <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
             {parseContent(articleData.content || '')[0]}
           </p>
 
@@ -290,7 +296,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           {parseContent(articleData.content || '').slice(1).map((paragraph, index) => (
             <p
               key={index}
-              className="text-[#0A0A0A] font-Inter text-lg font-normal leading-[29.25px] mb-6"
+              className="text-[#0A0A0A] font-Inter text-base sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
             >
               {paragraph}
             </p>
@@ -298,33 +304,35 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
         </div>
       )}
       
-      <div className="flex items-center h-[62px] justify-between border-t-[1px] border-[#E2E8F0]">
-        <div className="flex gap-2 items-center justify-center">
+      <div className="flex flex-col sm:flex-row sm:items-center min-h-[62px] justify-between border-t-[1px] border-[#E2E8F0] gap-4 sm:gap-2 py-4 sm:py-0 px-4 sm:px-0">
+        <div className="flex gap-2 items-center justify-center sm:justify-start">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
+            className="sm:w-6 sm:h-6"
           >
             <path
               d="M17.743 3H20.7952L14.1285 10.6707L22 21.0723H15.8153L10.996 14.7671L5.45382 21.0723H2.40161L9.5502 12.8795L2 3H8.34538L12.7229 8.78313L17.743 3ZM16.6586 19.2249H18.3454L7.42169 4.72691H5.5743L16.6586 19.2249Z"
               fill="#09090B"
             />
           </svg>
-          <p className="text-base text-[#737373] leading-[24px]">
+          <p className="text-sm sm:text-base text-[#737373] leading-[24px] text-center sm:text-left">
             Submitted by{" "}
             {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
           </p>
         </div>
-        <Button asChild>
-          <a href={articleData.link} target="_blank" rel="noopener noreferrer">
+        <Button asChild className="w-full sm:w-auto touch-manipulation">
+          <a href={articleData.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="17"
-              height="16"
+              width="16"
+              height="15"
               viewBox="0 0 17 16"
               fill="none"
+              className="sm:w-[17px] sm:h-4"
             >
               <path
                 d="M10.5 2H14.5M14.5 2V6M14.5 2L7.16667 9.33333M12.5 8.66667V12.6667C12.5 13.0203 12.3595 13.3594 12.1095 13.6095C11.8594 13.8595 11.5203 14 11.1667 14H3.83333C3.47971 14 3.14057 13.8595 2.89052 13.6095C2.64048 13.3594 2.5 13.0203 2.5 12.6667V5.33333C2.5 4.97971 2.64048 4.64057 2.89052 4.39052C3.14057 4.14048 3.47971 4 3.83333 4H7.83333"
@@ -340,8 +348,8 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
 
       {/* Fallback to description if no content */}
       {!articleData.content && articleData.description && (
-        <div className="flex flex-col">
-          <p className="text-[#737373] font-Inter text-2xl font-light leading-[39px] mb-8">
+        <div className="flex flex-col px-4 sm:px-0">
+          <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
             {articleData.description}
           </p>
         </div>
@@ -354,7 +362,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
       {/* Card Stack Container */}
       <div
         ref={cardRef}
-        className="relative cursor-grab active:cursor-grabbing"
+        className="relative cursor-grab active:cursor-grabbing touch-manipulation"
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -408,22 +416,23 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
       </div>
       
       {/* Navigation Section */}
-      <div className="flex w-[660px] px-[120px] py-[21px] flex-col items-center gap-[10px] rounded-b-[16px] bg-gradient-to-t from-black/15 via-transparent to-transparent">
-        <div className="flex h-[65px] px-[24px] py-[12px] justify-center items-center gap-[8px] rounded-[45.5px] bg-white/90">
-          <div className="flex items-center gap-[28px]">
+      <div className="flex w-full max-w-[660px] px-4 sm:px-[60px] lg:px-[120px] py-[16px] sm:py-[21px] flex-col items-center gap-[10px] rounded-b-[12px] sm:rounded-b-[16px] bg-gradient-to-t from-black/15 via-transparent to-transparent">
+        <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90">
+          <div className="flex items-center gap-[16px] sm:gap-[28px]">
             {/* Previous Button */}
             {prevItem ? (
-              <Button asChild variant={"secondary"} className="flex h-[36px] min-w-[80px] px-[12px] py-[8px] justify-center items-center gap-1 rounded-3xl text-black">
+              <Button asChild variant={"secondary"} className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-black text-sm sm:text-base touch-manipulation">
                 <Link
                   to="/reading/$feedId/$slug"
                   params={{ feedId, slug: generateSlug(prevItem.title) }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="17"
-                    height="17"
+                    width="14"
+                    height="14"
                     viewBox="0 0 17 17"
                     fill="none"
+                    className="sm:w-[17px] sm:h-[17px]"
                   >
                     <path
                       fillRule="evenodd"
@@ -432,17 +441,18 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
                       fill="#1C274C"
                     />
                   </svg>
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
                 </Link>
               </Button>
             ) : (
-              <Button disabled variant={"secondary"} className="flex h-[36px] min-w-[80px] px-[12px] py-[8px] justify-center items-center gap-1 rounded-3xl text-gray-400 opacity-50">
+              <Button disabled variant={"secondary"} className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-gray-400 opacity-50 text-sm sm:text-base">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="17"
-                  height="17"
+                  width="14"
+                  height="14"
                   viewBox="0 0 17 17"
                   fill="none"
+                  className="sm:w-[17px] sm:h-[17px]"
                 >
                   <path
                     fillRule="evenodd"
@@ -451,18 +461,19 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
                     fill="#9CA3AF"
                   />
                 </svg>
-                Previous
+                <span className="hidden sm:inline">Previous</span>
               </Button>
             )}
 
             {/* Play Button */}
-            <Button className="flex p-[14px] items-center gap-[10px] rounded-full border-[0.667px] border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:bg-gray-50">
+            <Button className="flex p-[10px] sm:p-[14px] items-center gap-[10px] rounded-full border-[0.667px] border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:bg-gray-50 touch-manipulation">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="21"
-                height="21"
+                width="18"
+                height="18"
                 viewBox="0 0 21 21"
                 fill="none"
+                className="sm:w-[21px] sm:h-[21px]"
               >
                 <path
                   d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
@@ -474,18 +485,20 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
 
             {/* Next Button */}
             {nextItem ? (
-              <Button asChild className="flex h-[36px] min-w-[80px] px-[12px] py-[8px] justify-center items-center gap-1 rounded-3xl bg-black text-white hover:bg-gray-800">
+              <Button asChild className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-black text-white hover:bg-gray-800 text-sm sm:text-base touch-manipulation">
                 <Link
                   to="/reading/$feedId/$slug"
                   params={{ feedId, slug: generateSlug(nextItem.title) }}
                 >
-                  Next Article
+                  <span className="hidden sm:inline">Next Article</span>
+                  <span className="sm:hidden">Next</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="17"
-                    height="17"
+                    width="14"
+                    height="14"
                     viewBox="0 0 17 17"
                     fill="none"
+                    className="sm:w-[17px] sm:h-[17px]"
                   >
                     <path
                       d="M7.83334 6.34565L3.76891 3.37227C2.90059 2.77417 1.8335 3.55265 1.8335 4.78423L1.8335 12.2158C1.8335 13.4474 2.90059 14.2259 3.76891 13.6278L7.83334 10.6544"
@@ -501,14 +514,16 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
                 </Link>
               </Button>
             ) : (
-              <Button disabled className="flex h-[36px] min-w-[80px] px-[12px] py-[8px] justify-center items-center gap-1 rounded-3xl bg-gray-400 text-gray-300 opacity-50">
-                Next Article
+              <Button disabled className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-gray-400 text-gray-300 opacity-50 text-sm sm:text-base">
+                <span className="hidden sm:inline">Next Article</span>
+                <span className="sm:hidden">Next</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="17"
-                  height="17"
+                  width="14"
+                  height="14"
                   viewBox="0 0 17 17"
                   fill="none"
+                  className="sm:w-[17px] sm:h-[17px]"
                 >
                   <path
                     d="M7.83334 6.34565L3.76891 3.37227C2.90059 2.77417 1.8335 3.55265 1.8335 4.78423L1.8335 12.2158C1.8335 13.4474 2.90059 14.2259 3.76891 13.6278L7.83334 10.6544"

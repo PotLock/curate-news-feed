@@ -194,14 +194,66 @@ function ReadingPage() {
   }
 
   return (
-    <div className="px-[258px] py-[58px] flex flex-col items-center justify-center">
+    <div className="px-4 sm:px-8 lg:px-[258px] py-4 sm:py-8 lg:py-[58px] flex flex-col items-center justify-center">
       <ReadingHeader
         feedId={feedId}
         categoryCount={getCategoryCount()}
         uploadDate={item.date}
         authorName={item.author?.[0]?.name}
       />
-      <div className="flex gap-[20px]">
+      
+      {/* Mobile Layout */}
+      <div className="flex flex-col lg:hidden w-full max-w-4xl gap-6">
+        {/* Mobile Progress Bar - Horizontal */}
+        <div className="flex items-center justify-between px-4 py-3 bg-[#FFFFFFF2] border-[0.667px] border-[#E5E5E5] rounded-[12px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)]">
+          <span className="text-sm font-bold leading-[20px] font-Inter">
+            {currentIndex}/{totalCount}
+          </span>
+          <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full relative overflow-hidden">
+            <div
+              className="absolute left-0 top-0 h-full bg-black rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+          <Button
+            variant={"outline"}
+            size="sm"
+            className="bg-[#FFFFFFF2] border-[0.667px] p-2 border-[#E5E5E5] rounded-[6px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto"
+            onClick={handleReset}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M2.5 10C2.5 8.01088 3.29018 6.10322 4.6967 4.6967C6.10322 3.29018 8.01088 2.5 10 2.5C12.0967 2.50789 14.1092 3.32602 15.6167 4.78333L17.5 6.66667M17.5 6.66667V2.5M17.5 6.66667H13.3333M17.5 10C17.5 11.9891 16.7098 13.8968 15.3033 15.3033C13.8968 16.7098 11.9891 17.5 10 17.5C7.90329 17.4921 5.89081 16.674 4.38333 15.2167L2.5 13.3333M2.5 13.3333H6.66667M2.5 13.3333V17.5"
+                stroke="#020617"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Button>
+        </div>
+        
+        <ReadingArticle 
+          item={item} 
+          feedId={feedId}
+          prevItem={prevItem && prevItem.id ? { id: prevItem.id, title: prevItem.title } : null}
+          nextItem={nextItem && nextItem.id ? { id: nextItem.id, title: nextItem.title } : null}
+          generateSlug={generateSlug}
+        />
+        
+        {/* Mobile Actions */}
+        <div className="flex justify-center">
+          <ReadingActions />
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex gap-[20px]">
         <div className="flex flex-col gap-4 items-center h-auto">
           <div className="bg-[#FFFFFFF2] border-[0.667px] px-[6px] py-2 border-[#E5E5E5] rounded-[6px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)]">
             <p className="text-sm font-bold leading-[20px] font-Inter">
@@ -229,8 +281,8 @@ function ReadingPage() {
               <path
                 d="M2.5 10C2.5 8.01088 3.29018 6.10322 4.6967 4.6967C6.10322 3.29018 8.01088 2.5 10 2.5C12.0967 2.50789 14.1092 3.32602 15.6167 4.78333L17.5 6.66667M17.5 6.66667V2.5M17.5 6.66667H13.3333M17.5 10C17.5 11.9891 16.7098 13.8968 15.3033 15.3033C13.8968 16.7098 11.9891 17.5 10 17.5C7.90329 17.4921 5.89081 16.674 4.38333 15.2167L2.5 13.3333M2.5 13.3333H6.66667M2.5 13.3333V17.5"
                 stroke="#020617"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </Button>
