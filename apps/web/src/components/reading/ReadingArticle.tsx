@@ -279,7 +279,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           <img
             src={getImageUrl(articleData.image)!}
             alt={articleData.title}
-            className="w-full rounded-lg sm:rounded-xl object-cover max-h-[300px] sm:max-h-[400px] lg:max-h-none"
+            className="w-full rounded-lg sm:rounded-xl object-cover max-h-[300px] sm:max-h-[400px] lg:max-h-[414px]"
           />
         </div>
       )}
