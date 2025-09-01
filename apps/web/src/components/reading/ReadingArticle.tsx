@@ -389,6 +389,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
             dragElastic={0.3}
             dragConstraints={{ left: -300, right: 300 }}
             dragMomentum={false}
+            onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             whileDrag={{ 
               scale: 0.95,
