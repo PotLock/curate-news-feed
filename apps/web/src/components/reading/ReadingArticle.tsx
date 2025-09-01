@@ -1,9 +1,9 @@
 import { Button } from "../ui/button";
 import { Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { motion, AnimatePresence } from "framer-motion";
-import type { PanInfo } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import type { PanInfo } from "motion/react";
 
 interface ArticleItem {
   id?: string;
@@ -39,28 +39,45 @@ interface ReadingArticleProps {
   generateSlug: (title: string) => string;
 }
 
-export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug }: ReadingArticleProps) {
+export function ReadingArticle({
+  item,
+  feedId,
+  prevItem,
+  nextItem,
+  generateSlug,
+}: ReadingArticleProps) {
   const navigate = useNavigate();
-  const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
+  const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
+    null
+  );
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [dragDirection, setDragDirection] = useState<"left" | "right" | null>(null);
+  const [dragDirection, setDragDirection] = useState<"left" | "right" | null>(
+    null
+  );
 
-  const handleDrag = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handleDrag = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     const offset = info.offset.x;
     // Update drag direction based on swipe direction
-    if (Math.abs(offset) > 20) { // Small threshold to avoid jitter
+    if (Math.abs(offset) > 20) {
+      // Small threshold to avoid jitter
       setDragDirection(offset > 0 ? "right" : "left");
     }
   };
 
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handleDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     const threshold = 100;
     const velocity = info.velocity.x;
     const offset = info.offset.x;
-    
+
     // Reset drag direction
     setDragDirection(null);
-    
+
     // Check if swipe is strong enough (velocity or distance)
     if (Math.abs(velocity) > 500 || Math.abs(offset) > threshold) {
       if (offset > 0 && prevItem) {
@@ -144,11 +161,16 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
     return [firstParagraph];
   };
 
-  const ArticleCard = ({ articleData, isBackground = false }: { 
-    articleData: ArticleItem, 
-    isBackground?: boolean
+  const ArticleCard = ({
+    articleData,
+    isBackground = false,
+  }: {
+    articleData: ArticleItem;
+    isBackground?: boolean;
   }) => (
-    <article className={`w-full max-w-[660px] justify-center gap-[24px] sm:gap-[32px] lg:gap-[40px] flex flex-col bg-white rounded-2xl ${isBackground ? '' : 'shadow-xl'}`}>
+    <article
+      className={`w-full max-w-[660px] justify-center gap-[24px] sm:gap-[32px] lg:gap-[40px] flex flex-col bg-white rounded-2xl ${isBackground ? "" : "shadow-xl"}`}
+    >
       <div className="p-6 sm:p-8">
         {/* 1. Title */}
         <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-tight sm:leading-[40px] lg:leading-[50px] text-center text-[#0A0A0A] font-Inter px-4 sm:px-0 mb-6">
@@ -196,7 +218,9 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
             </svg>
             <span className="text-[#737373] font-Inter text-sm sm:text-base font-medium leading-6">
               From{" "}
-              {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
+              {articleData.author && articleData.author[0]
+                ? articleData.author[0].name
+                : "Unknown"}
             </span>
           </div>
         </div>
@@ -213,25 +237,27 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
         )}
 
         {/* 4. Content Paragraphs */}
-        {parseContent(articleData.content || '').length > 0 && (
+        {parseContent(articleData.content || "").length > 0 && (
           <div className="flex flex-col px-4 sm:px-0">
             {/* First paragraph with special styling */}
             <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
-              {parseContent(articleData.content || '')[0]}
+              {parseContent(articleData.content || "")[0]}
             </p>
 
             {/* Subsequent paragraphs */}
-            {parseContent(articleData.content || '').slice(1).map((paragraph, index) => (
-              <p
-                key={index}
-                className="text-[#0A0A0A] font-Inter text-base sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
-              >
-                {paragraph}
-              </p>
-            ))}
+            {parseContent(articleData.content || "")
+              .slice(1)
+              .map((paragraph, index) => (
+                <p
+                  key={index}
+                  className="text-[#0A0A0A] font-Inter text-base sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
+                >
+                  {paragraph}
+                </p>
+              ))}
           </div>
         )}
-        
+
         <div className="flex flex-col sm:flex-row sm:items-center min-h-[62px] justify-between border-t-[1px] border-[#E2E8F0] gap-4 sm:gap-2 py-4 sm:py-0 px-4 sm:px-0 mt-6">
           <div className="flex gap-2 items-center justify-center sm:justify-start">
             <svg
@@ -249,11 +275,18 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
             </svg>
             <p className="text-sm sm:text-base text-[#737373] leading-[24px] text-center sm:text-left">
               Submitted by{" "}
-              {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
+              {articleData.author && articleData.author[0]
+                ? articleData.author[0].name
+                : "Unknown"}
             </p>
           </div>
           <Button asChild className="w-full sm:w-auto touch-manipulation">
-            <a href={articleData.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+            <a
+              href={articleData.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -298,7 +331,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
         stiffness: 400,
         damping: 35,
         opacity: { duration: 0.2 },
-      }
+      },
     },
     center: {
       x: 0,
@@ -309,7 +342,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
         type: "spring" as const,
         stiffness: 400,
         damping: 35,
-      }
+      },
     },
     exit: (direction: number) => ({
       x: direction < 0 ? 1200 : -1200,
@@ -322,35 +355,38 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
         damping: 30,
         opacity: { duration: 0.4 },
         scale: { duration: 0.5 },
-      }
+      },
     }),
   };
 
   // Background card animations during transition
   const backgroundVariants = {
     hidden: { scale: 0.9, y: 20, opacity: 0.8 },
-    visible: { 
-      scale: isTransitioning ? 1 : 0.9, 
-      y: isTransitioning ? 0 : 20, 
+    visible: {
+      scale: isTransitioning ? 1 : 0.9,
+      y: isTransitioning ? 0 : 20,
       opacity: 1,
       transition: {
         type: "spring" as const,
         stiffness: 400,
         damping: 35,
         duration: 0.4,
-      }
+      },
     },
   };
 
   return (
-    <div className="relative w-full max-w-[660px] overflow-visible" style={{ perspective: "1000px" }}>
+    <div
+      className="relative w-full max-w-[660px] overflow-visible"
+      style={{ perspective: "1000px" }}
+    >
       {/* Card Stack Container */}
       <div className="relative">
         {/* Background card - Show only one at a time based on drag direction */}
         {(() => {
           // Determine which background card to show
           let backgroundCard = null;
-          
+
           if (dragDirection === "right" && prevItem) {
             // Swiping right - show previous card
             backgroundCard = prevItem;
@@ -361,9 +397,9 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
             // Default state - show next card
             backgroundCard = nextItem;
           }
-          
+
           return backgroundCard ? (
-            <motion.div 
+            <motion.div
               key={backgroundCard.id || backgroundCard.title}
               className="absolute inset-0 pointer-events-none"
               variants={backgroundVariants}
@@ -391,13 +427,13 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
             dragMomentum={false}
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
-            whileDrag={{ 
+            whileDrag={{
               scale: 0.95,
               rotateY: 0,
-              cursor: "grabbing"
+              cursor: "grabbing",
             }}
             className="relative cursor-grab active:cursor-grabbing touch-manipulation"
-            style={{ 
+            style={{
               zIndex: 10,
               transformStyle: "preserve-3d",
             }}
@@ -406,9 +442,9 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           </motion.div>
         </AnimatePresence>
       </div>
-      
+
       {/* Navigation Section */}
-      <motion.div 
+      <motion.div
         className="flex w-full max-w-[660px] px-4 sm:px-[60px] lg:px-[120px] py-[16px] sm:py-[21px] flex-col items-center gap-[10px] rounded-b-[12px] sm:rounded-b-[16px] mt-6 relative"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: isTransitioning ? 0.5 : 1, y: 0 }}
@@ -419,7 +455,11 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           <div className="flex items-center gap-[16px] sm:gap-[28px]">
             {/* Previous Button */}
             {prevItem ? (
-              <Button asChild variant={"secondary"} className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-black text-sm sm:text-base touch-manipulation">
+              <Button
+                asChild
+                variant={"secondary"}
+                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-black text-sm sm:text-base touch-manipulation"
+              >
                 <Link
                   to="/reading/$feedId/$slug"
                   params={{ feedId, slug: generateSlug(prevItem.title) }}
@@ -443,7 +483,11 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
                 </Link>
               </Button>
             ) : (
-              <Button disabled variant={"secondary"} className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-gray-400 opacity-50 text-sm sm:text-base">
+              <Button
+                disabled
+                variant={"secondary"}
+                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-gray-400 opacity-50 text-sm sm:text-base"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="14"
@@ -483,7 +527,10 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
 
             {/* Next Button */}
             {nextItem ? (
-              <Button asChild className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-black text-white hover:bg-gray-800 text-sm sm:text-base touch-manipulation">
+              <Button
+                asChild
+                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-black text-white hover:bg-gray-800 text-sm sm:text-base touch-manipulation"
+              >
                 <Link
                   to="/reading/$feedId/$slug"
                   params={{ feedId, slug: generateSlug(nextItem.title) }}
@@ -512,7 +559,10 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
                 </Link>
               </Button>
             ) : (
-              <Button disabled className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-gray-400 text-gray-300 opacity-50 text-sm sm:text-base">
+              <Button
+                disabled
+                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-gray-400 text-gray-300 opacity-50 text-sm sm:text-base"
+              >
                 <span className="hidden sm:inline">Next Article</span>
                 <span className="sm:hidden">Next</span>
                 <svg
