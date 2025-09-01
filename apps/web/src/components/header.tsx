@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, Search } from "lucide-react";
+import { X, Search } from "lucide-react";
 
 import { ModeToggle } from "./mode-toggle";
 import { UserMenu } from "./user-menu";

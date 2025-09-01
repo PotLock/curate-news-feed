@@ -77,7 +77,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
 
   if (!displayItems.length) {
     return (
-      <div className="mx-auto p-4 sm:p-6 max-w-[1440px]">
+      <div className="mx-auto p-2 sm:p-4 lg:p-6 w-full max-w-[1440px]">
         <div className="flex items-center justify-start">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-black font-inter leading-6 sm:leading-8 m-0">
@@ -95,8 +95,8 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   }
 
   return (
-    <div className="mx-auto max-w-[1440px] h-screen sm:h-[calc(100svh-64px)] overflow-hidden">
-      <div className="p-4 sm:p-6 h-full flex flex-col">
+    <div className="mx-auto w-full max-w-[1440px] h-screen sm:h-[calc(100svh-64px)] overflow-hidden">
+      <div className="p-2 sm:p-4 lg:p-6 h-full flex flex-col">
         {/* Feed Header */}
         <div className="flex items-center justify-start mb-4 sm:mb-6 flex-shrink-0">
           <div className="w-full">
@@ -147,9 +147,9 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
         </div>
 
         {/* Scrollable Feed Grid Container */}
-        <div className="overflow-y-auto relative rounded-lg">
-          {/* Simple 3-column Grid */}
-          <div className="grid grid-cols-3 gap-[25px] w-full">
+        <div className="overflow-y-auto relative rounded-lg flex-1 min-w-0">
+          {/* Responsive Grid: 1 col mobile, 2 col tablet, 3 col desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-[25px] w-full">
             {displayItems.map((item, index) => (
               <Link
                 key={item.id || index}
@@ -158,31 +158,31 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                   feedId: feedId,
                   slug: generateSlug(item.title),
                 }}
-                className="py-[46px] px-[24px] h-[358px] rounded-lg flex flex-col justify-between hover:opacity-90 transition-opacity cursor-pointer"
+                className="py-6 sm:py-8 lg:py-[46px] px-4 sm:px-5 lg:px-6 h-[280px] sm:h-[320px] lg:h-[358px] rounded-lg flex flex-col justify-between hover:opacity-90 transition-opacity cursor-pointer min-w-0"
                 style={{ backgroundColor: getCardColor(index) }}
               >
                 {/* Content Section */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 min-w-0">
                   {/* Info Div - Time and Author */}
-                  <div className="w-full flex justify-between items-center">
-                    <span className="text-white/70 text-sm font-inter uppercase">
+                  <div className="w-full flex justify-between items-center gap-2">
+                    <span className="text-white/70 text-xs sm:text-sm font-inter uppercase truncate">
                       {formatDate(item.date)}
                     </span>
                     {item.author && item.author[0] && (
-                      <span className="text-white/70 text-sm font-inter uppercase">
+                      <span className="text-white/70 text-xs sm:text-sm font-inter uppercase truncate">
                         BY {item.author[0].name?.toUpperCase()}
                       </span>
                     )}
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-white text-2xl font-bold font-inter line-clamp-3">
+                  <h3 className="text-white text-lg sm:text-xl lg:text-2xl font-bold font-inter line-clamp-2 sm:line-clamp-3">
                     {item.title}
                   </h3>
 
                   {/* Description */}
                   {item.description && (
-                    <p className="text-white/70 text-base leading-6 font-inter line-clamp-4">
+                    <p className="text-white/70 text-sm sm:text-base leading-5 sm:leading-6 font-inter line-clamp-3 sm:line-clamp-4">
                       {item.description}
                     </p>
                   )}

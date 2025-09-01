@@ -14,9 +14,9 @@ function RouteComponent() {
       <SidebarProvider defaultOpen={true}>
         <div className="min-h-screen flex w-full bg-[#FAFAFA]">
           <FeedSidebar />
-          <SidebarInset className="flex flex-col bg-[#FAFAFA] w-full">
+          <SidebarInset className="flex flex-col bg-[#FAFAFA] w-full max-w-[100vw] md:max-w-[calc(100vw-var(--sidebar-width))]">
             <Header />
-            <main className="flex-1 bg-[#FAFAFA] px-4 sm:px-6 lg:px-0">
+            <main className="flex-1 bg-[#FAFAFA] px-2 sm:px-4 lg:px-0">
               <Outlet />
             </main>
           </SidebarInset>

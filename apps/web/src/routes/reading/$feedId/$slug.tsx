@@ -69,7 +69,7 @@ function ReadingPage() {
   // Validate that we have the required data
   if (!feedId || !slug) {
     return (
-      <div className="px-[258px] py-[58px] flex items-center justify-center">
+      <div className="px-3 sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex items-center justify-center">
         <div className="text-center text-red-600">
           Missing required parameters: feedId or slug
         </div>
@@ -79,7 +79,7 @@ function ReadingPage() {
 
   if (!loaderData) {
     return (
-      <div className="px-[258px] py-[58px] flex items-center justify-center">
+      <div className="px-3 sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex items-center justify-center">
         <div className="text-center text-red-600">Failed to load data</div>
       </div>
     );
@@ -163,7 +163,7 @@ function ReadingPage() {
 
   if (error) {
     return (
-      <div className="px-[258px] py-[58px] flex items-center justify-center">
+      <div className="px-3 sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex items-center justify-center">
         <div className="text-center text-red-600">
           Error loading article: {error.message}
         </div>
@@ -173,7 +173,7 @@ function ReadingPage() {
 
   if (!item) {
     return (
-      <div className="px-[258px] py-[58px] flex items-center justify-center">
+      <div className="px-3 sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-black mb-4">
             Article Not Found
@@ -194,14 +194,14 @@ function ReadingPage() {
   }
 
   return (
-    <div className="px-4 sm:px-8 lg:px-[258px] py-4 sm:py-8 lg:py-[58px] flex flex-col items-center justify-center">
+    <div className="px-3 max-w-screen sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex flex-col items-center justify-center">
       <ReadingHeader
         feedId={feedId}
         categoryCount={getCategoryCount()}
         uploadDate={item.date}
         authorName={item.author?.[0]?.name}
       />
-      
+
       {/* Mobile Layout */}
       <div className="flex flex-col lg:hidden w-full max-w-4xl gap-6">
         {/* Mobile Progress Bar - Horizontal */}
@@ -237,15 +237,23 @@ function ReadingPage() {
             </svg>
           </Button>
         </div>
-        
-        <ReadingArticle 
-          item={item} 
+
+        <ReadingArticle
+          item={item}
           feedId={feedId}
-          prevItem={prevItem && prevItem.id ? { id: prevItem.id, title: prevItem.title } : null}
-          nextItem={nextItem && nextItem.id ? { id: nextItem.id, title: nextItem.title } : null}
+          prevItem={
+            prevItem && prevItem.id
+              ? { id: prevItem.id, title: prevItem.title }
+              : null
+          }
+          nextItem={
+            nextItem && nextItem.id
+              ? { id: nextItem.id, title: nextItem.title }
+              : null
+          }
           generateSlug={generateSlug}
         />
-        
+
         {/* Mobile Actions */}
         <div className="flex justify-center">
           <ReadingActions />
@@ -287,11 +295,19 @@ function ReadingPage() {
             </svg>
           </Button>
         </div>
-        <ReadingArticle 
-          item={item} 
+        <ReadingArticle
+          item={item}
           feedId={feedId}
-          prevItem={prevItem && prevItem.id ? { id: prevItem.id, title: prevItem.title } : null}
-          nextItem={nextItem && nextItem.id ? { id: nextItem.id, title: nextItem.title } : null}
+          prevItem={
+            prevItem && prevItem.id
+              ? { id: prevItem.id, title: prevItem.title }
+              : null
+          }
+          nextItem={
+            nextItem && nextItem.id
+              ? { id: nextItem.id, title: nextItem.title }
+              : null
+          }
           generateSlug={generateSlug}
         />
         <ReadingActions />
