@@ -43,11 +43,23 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
   const navigate = useNavigate();
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [dragDirection, setDragDirection] = useState<"left" | "right" | null>(null);
+
+  const handleDrag = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const offset = info.offset.x;
+    // Update drag direction based on swipe direction
+    if (Math.abs(offset) > 20) { // Small threshold to avoid jitter
+      setDragDirection(offset > 0 ? "right" : "left");
+    }
+  };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     const velocity = info.velocity.x;
     const offset = info.offset.x;
+    
+    // Reset drag direction
+    setDragDirection(null);
     
     // Check if swipe is strong enough (velocity or distance)
     if (Math.abs(velocity) > 500 || Math.abs(offset) > threshold) {
@@ -189,8 +201,8 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
           </div>
         </div>
 
-        {/* 3. Feed Image */}
-        {getImageUrl(articleData.image) && (
+        {/* 3. Feed Image - Only show for non-background cards */}
+        {!isBackground && getImageUrl(articleData.image) && (
           <div className="mb-6 sm:mb-8 lg:mb-10 px-4 sm:px-0">
             <img
               src={getImageUrl(articleData.image)!}
@@ -334,33 +346,35 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
     <div className="relative w-full max-w-[660px] overflow-visible" style={{ perspective: "1000px" }}>
       {/* Card Stack Container */}
       <div className="relative">
-        {/* Background cards (next and previous previews) */}
-        {nextItem && (
-          <motion.div 
-            className="absolute inset-0 pointer-events-none"
-            variants={backgroundVariants}
-            initial="hidden"
-            animate="visible"
-            style={{ zIndex: 0 }}
-          >
-            <ArticleCard articleData={nextItem} isBackground={false} />
-          </motion.div>
-        )}
-        
-        {prevItem && (
-          <motion.div 
-            className="absolute inset-0 pointer-events-none"
-            variants={backgroundVariants}
-            initial="hidden"
-            animate="visible"
-            style={{ 
-              zIndex: -1,
-              transform: `scale(0.85) translateY(40px)`,
-            }}
-          >
-            <ArticleCard articleData={prevItem} isBackground={false} />
-          </motion.div>
-        )}
+        {/* Background card - Show only one at a time based on drag direction */}
+        {(() => {
+          // Determine which background card to show
+          let backgroundCard = null;
+          
+          if (dragDirection === "right" && prevItem) {
+            // Swiping right - show previous card
+            backgroundCard = prevItem;
+          } else if (dragDirection === "left" && nextItem) {
+            // Swiping left - show next card
+            backgroundCard = nextItem;
+          } else if (!dragDirection && nextItem) {
+            // Default state - show next card
+            backgroundCard = nextItem;
+          }
+          
+          return backgroundCard ? (
+            <motion.div 
+              key={backgroundCard.id || backgroundCard.title}
+              className="absolute inset-0 pointer-events-none"
+              variants={backgroundVariants}
+              initial="hidden"
+              animate="visible"
+              style={{ zIndex: 0 }}
+            >
+              <ArticleCard articleData={backgroundCard} isBackground={true} />
+            </motion.div>
+          ) : null;
+        })()}
 
         {/* Main card (current article) with AnimatePresence for smooth transitions */}
         <AnimatePresence mode="wait" custom={exitDirection === "left" ? -1 : 1}>
