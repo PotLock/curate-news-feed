@@ -1,21 +1,23 @@
 import { Button } from "../ui/button";
 import { Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
+import type { PanInfo } from "framer-motion";
 
 interface ArticleItem {
-  id: string;
+  id?: string;
   title: string;
   date: string;
   published?: string;
   author?: Array<{
-    name: string;
+    name?: string;
     email?: string;
     link?: string;
     avatar?: string;
   }>;
   category?: Array<{
-    name: string;
+    name?: string;
     domain?: string;
     scheme?: string;
     term?: string;
@@ -32,138 +34,49 @@ interface ArticleItem {
 interface ReadingArticleProps {
   item: ArticleItem;
   feedId: string;
-  prevItem?: {
-    id: string;
-    title: string;
-  } | null;
-  nextItem?: {
-    id: string;
-    title: string;
-  } | null;
+  prevItem?: ArticleItem | null;
+  nextItem?: ArticleItem | null;
   generateSlug: (title: string) => string;
 }
 
 export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug }: ReadingArticleProps) {
   const navigate = useNavigate();
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragX, setDragX] = useState(0);
-  const [startX, setStartX] = useState(0);
-  const [preloadedNext, setPreloadedNext] = useState<ArticleItem | null>(null);
-  const [preloadedPrev, setPreloadedPrev] = useState<ArticleItem | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Lazy load adjacent articles
-  useEffect(() => {
-    if (nextItem && !preloadedNext) {
-      // In a real implementation, you would fetch the full article data here
-      // For now, we'll use the basic item data with fallback content
-      setPreloadedNext({ 
-        ...item, 
-        id: nextItem.id, 
-        title: nextItem.title,
-        content: `This is the content for ${nextItem.title}. In a production app, this would be loaded from your API.`,
-        description: `Preview of ${nextItem.title}`
-      });
-    }
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 100;
+    const velocity = info.velocity.x;
+    const offset = info.offset.x;
     
-    if (prevItem && !preloadedPrev) {
-      setPreloadedPrev({ 
-        ...item, 
-        id: prevItem.id, 
-        title: prevItem.title,
-        content: `This is the content for ${prevItem.title}. In a production app, this would be loaded from your API.`,
-        description: `Preview of ${prevItem.title}`
-      });
-    }
-  }, [nextItem, prevItem, preloadedNext, preloadedPrev, item]);
-
-  const handleSwipeStart = (clientX: number) => {
-    setIsDragging(true);
-    setStartX(clientX);
-  };
-
-  const handleSwipeMove = (clientX: number) => {
-    if (!isDragging) return;
-    const deltaX = clientX - startX;
-    setDragX(deltaX);
-  };
-
-  const handleSwipeEnd = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    
-    // More sensitive threshold for mobile
-    const threshold = window.innerWidth < 640 ? 80 : 100;
-    console.log('Swipe ended:', { dragX, threshold, prevItem: !!prevItem, nextItem: !!nextItem });
-    
-    if (Math.abs(dragX) > threshold) {
-      if (dragX > 0 && prevItem) {
+    // Check if swipe is strong enough (velocity or distance)
+    if (Math.abs(velocity) > 500 || Math.abs(offset) > threshold) {
+      if (offset > 0 && prevItem) {
         // Swipe right - go to previous
-        console.log('Navigating to previous:', prevItem.title);
-        navigate({
-          to: "/reading/$feedId/$slug",
-          params: { feedId, slug: generateSlug(prevItem.title) },
-        });
-      } else if (dragX < 0 && nextItem) {
+        setIsTransitioning(true);
+        setExitDirection("right");
+        // Wait for exit animation to complete (spring animation + opacity fade)
+        setTimeout(() => {
+          navigate({
+            to: "/reading/$feedId/$slug",
+            params: { feedId, slug: generateSlug(prevItem.title) },
+          });
+        }, 600); // Increased to match animation duration
+      } else if (offset < 0 && nextItem) {
         // Swipe left - go to next
-        console.log('Navigating to next:', nextItem.title);
-        navigate({
-          to: "/reading/$feedId/$slug",
-          params: { feedId, slug: generateSlug(nextItem.title) },
-        });
+        setIsTransitioning(true);
+        setExitDirection("left");
+        // Wait for exit animation to complete (spring animation + opacity fade)
+        setTimeout(() => {
+          navigate({
+            to: "/reading/$feedId/$slug",
+            params: { feedId, slug: generateSlug(nextItem.title) },
+          });
+        }, 600); // Increased to match animation duration
       }
     }
-    
-    setDragX(0);
   };
 
-  // Mouse events
-  const handleMouseDown = (e: React.MouseEvent) => {
-    handleSwipeStart(e.clientX);
-  };
-
-  // Touch events
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
-    handleSwipeStart(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
-    if (isDragging) {
-      handleSwipeMove(e.touches[0].clientX);
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault();
-    handleSwipeEnd();
-  };
-
-  useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        const deltaX = e.clientX - startX;
-        setDragX(deltaX);
-      }
-    };
-
-    const handleGlobalMouseUp = () => {
-      if (isDragging) {
-        handleSwipeEnd();
-      }
-    };
-
-    if (isDragging) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-    };
-  }, [isDragging, startX, dragX, prevItem, nextItem]);
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -219,205 +132,275 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
     return [firstParagraph];
   };
 
+  const ArticleCard = ({ articleData, isBackground = false }: { 
+    articleData: ArticleItem, 
+    isBackground?: boolean
+  }) => (
+    <article className={`w-full max-w-[660px] justify-center gap-[24px] sm:gap-[32px] lg:gap-[40px] flex flex-col bg-white rounded-2xl ${isBackground ? '' : 'shadow-xl'}`}>
+      <div className="p-6 sm:p-8">
+        {/* 1. Title */}
+        <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-tight sm:leading-[40px] lg:leading-[50px] text-center text-[#0A0A0A] font-Inter px-4 sm:px-0 mb-6">
+          {articleData.title}
+        </h1>
 
-  const ArticleCard = ({ articleData, isBackground = false }: { articleData: ArticleItem, isBackground?: boolean }) => (
-    <article className={`w-full max-w-[660px] justify-center gap-[24px] sm:gap-[32px] lg:gap-[40px] flex flex-col ${isBackground ? 'opacity-30' : ''}`}>
-      {/* 1. Title */}
-      <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-tight sm:leading-[40px] lg:leading-[50px] text-center text-[#0A0A0A] font-Inter px-4 sm:px-0">
-        {articleData.title}
-      </h1>
-
-      {/* 2. Meta Information Row */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 sm:px-0">
-        {/* 2.1.1 Time div */}
-        <div className="flex items-center gap-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M12 6V12H16.5M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
-              stroke="#09090B"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="text-[#737373] font-Inter text-sm sm:text-base font-normal leading-6">
-            {formatTimeAgo(articleData.date)}
-          </span>
-        </div>
-
-        {/* 2.1.2 Author div */}
-        <div className="flex items-center gap-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M4 22H20C20.5304 22 21.0391 21.7893 21.4142 21.4142C21.7893 21.0391 22 20.5304 22 20V4C22 3.46957 21.7893 2.96086 21.4142 2.58579C21.0391 2.21071 20.5304 2 20 2H8C7.46957 2 6.96086 2.21071 6.58579 2.58579C6.21071 2.96086 6 3.46957 6 4V20C6 20.5304 5.78929 21.0391 5.41421 21.4142C5.03914 21.7893 4.53043 22 4 22ZM4 22C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V11C2 9.9 2.9 9 4 9H6M18 14H10M15 18H10M10 6H18V10H10V6Z"
-              stroke="#020617"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="text-[#737373] font-Inter text-sm sm:text-base font-medium leading-6">
-            From{" "}
-            {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
-          </span>
-        </div>
-      </div>
-
-      {/* 3. Feed Image */}
-      {getImageUrl(articleData.image) && (
-        <div className="mb-6 sm:mb-8 lg:mb-10 px-4 sm:px-0">
-          <img
-            src={getImageUrl(articleData.image)!}
-            alt={articleData.title}
-            className="w-full rounded-lg sm:rounded-xl object-cover max-h-[300px] sm:max-h-[400px] lg:max-h-[414px]"
-          />
-        </div>
-      )}
-
-      {/* 4. Content Paragraphs */}
-      {parseContent(articleData.content || '').length > 0 && (
-        <div className="flex flex-col px-4 sm:px-0">
-          {/* First paragraph with special styling */}
-          <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
-            {parseContent(articleData.content || '')[0]}
-          </p>
-
-          {/* Subsequent paragraphs */}
-          {parseContent(articleData.content || '').slice(1).map((paragraph, index) => (
-            <p
-              key={index}
-              className="text-[#0A0A0A] font-Inter text-base sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
-            >
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      )}
-      
-      <div className="flex flex-col sm:flex-row sm:items-center min-h-[62px] justify-between border-t-[1px] border-[#E2E8F0] gap-4 sm:gap-2 py-4 sm:py-0 px-4 sm:px-0">
-        <div className="flex gap-2 items-center justify-center sm:justify-start">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="sm:w-6 sm:h-6"
-          >
-            <path
-              d="M17.743 3H20.7952L14.1285 10.6707L22 21.0723H15.8153L10.996 14.7671L5.45382 21.0723H2.40161L9.5502 12.8795L2 3H8.34538L12.7229 8.78313L17.743 3ZM16.6586 19.2249H18.3454L7.42169 4.72691H5.5743L16.6586 19.2249Z"
-              fill="#09090B"
-            />
-          </svg>
-          <p className="text-sm sm:text-base text-[#737373] leading-[24px] text-center sm:text-left">
-            Submitted by{" "}
-            {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
-          </p>
-        </div>
-        <Button asChild className="w-full sm:w-auto touch-manipulation">
-          <a href={articleData.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+        {/* 2. Meta Information Row */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 sm:px-0 mb-6">
+          {/* 2.1.1 Time div */}
+          <div className="flex items-center gap-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="15"
-              viewBox="0 0 17 16"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
               fill="none"
-              className="sm:w-[17px] sm:h-4"
             >
               <path
-                d="M10.5 2H14.5M14.5 2V6M14.5 2L7.16667 9.33333M12.5 8.66667V12.6667C12.5 13.0203 12.3595 13.3594 12.1095 13.6095C11.8594 13.8595 11.5203 14 11.1667 14H3.83333C3.47971 14 3.14057 13.8595 2.89052 13.6095C2.64048 13.3594 2.5 13.0203 2.5 12.6667V5.33333C2.5 4.97971 2.64048 4.64057 2.89052 4.39052C3.14057 4.14048 3.47971 4 3.83333 4H7.83333"
-                stroke="#F8FAFC"
+                d="M12 6V12H16.5M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+                stroke="#09090B"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
-            <p>View Tweet</p>
-          </a>
-        </Button>
-      </div>
+            <span className="text-[#737373] font-Inter text-sm sm:text-base font-normal leading-6">
+              {formatTimeAgo(articleData.date)}
+            </span>
+          </div>
 
-      {/* Fallback to description if no content */}
-      {!articleData.content && articleData.description && (
-        <div className="flex flex-col px-4 sm:px-0">
-          <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
-            {articleData.description}
-          </p>
+          {/* 2.1.2 Author div */}
+          <div className="flex items-center gap-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M4 22H20C20.5304 22 21.0391 21.7893 21.4142 21.4142C21.7893 21.0391 22 20.5304 22 20V4C22 3.46957 21.7893 2.96086 21.4142 2.58579C21.0391 2.21071 20.5304 2 20 2H8C7.46957 2 6.96086 2.21071 6.58579 2.58579C6.21071 2.96086 6 3.46957 6 4V20C6 20.5304 5.78929 21.0391 5.41421 21.4142C5.03914 21.7893 4.53043 22 4 22ZM4 22C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V11C2 9.9 2.9 9 4 9H6M18 14H10M15 18H10M10 6H18V10H10V6Z"
+                stroke="#020617"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-[#737373] font-Inter text-sm sm:text-base font-medium leading-6">
+              From{" "}
+              {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
+            </span>
+          </div>
         </div>
-      )}
-    </article>
-  );
 
-  return (
-    <div className="relative w-full max-w-[660px] overflow-hidden">
-      {/* Card Stack Container */}
-      <div
-        ref={cardRef}
-        className="relative cursor-grab active:cursor-grabbing touch-manipulation"
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseLeave={() => {
-          if (isDragging) {
-            handleSwipeEnd();
-          }
-        }}
-        style={{
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-        }}
-      >
-        {/* Background card (next article preview) */}
-        {preloadedNext && dragX < 0 && (
-          <div 
-            className="absolute inset-0 transform transition-transform duration-200 ease-out"
-            style={{
-              transform: `translateX(${Math.max(0, -dragX * 0.3)}px)`,
-              zIndex: 0,
-            }}
-          >
-            <ArticleCard articleData={preloadedNext} isBackground={true} />
+        {/* 3. Feed Image */}
+        {getImageUrl(articleData.image) && (
+          <div className="mb-6 sm:mb-8 lg:mb-10 px-4 sm:px-0">
+            <img
+              src={getImageUrl(articleData.image)!}
+              alt={articleData.title}
+              className="w-full rounded-lg sm:rounded-xl object-cover max-h-[300px] sm:max-h-[400px] lg:max-h-[414px]"
+            />
+          </div>
+        )}
+
+        {/* 4. Content Paragraphs */}
+        {parseContent(articleData.content || '').length > 0 && (
+          <div className="flex flex-col px-4 sm:px-0">
+            {/* First paragraph with special styling */}
+            <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
+              {parseContent(articleData.content || '')[0]}
+            </p>
+
+            {/* Subsequent paragraphs */}
+            {parseContent(articleData.content || '').slice(1).map((paragraph, index) => (
+              <p
+                key={index}
+                className="text-[#0A0A0A] font-Inter text-base sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
+              >
+                {paragraph}
+              </p>
+            ))}
           </div>
         )}
         
-        {/* Background card (previous article preview) */}
-        {preloadedPrev && dragX > 0 && (
-          <div 
-            className="absolute inset-0 transform transition-transform duration-200 ease-out"
-            style={{
-              transform: `translateX(${Math.min(0, -dragX * 0.3)}px)`,
-              zIndex: 0,
-            }}
-          >
-            <ArticleCard articleData={preloadedPrev} isBackground={true} />
+        <div className="flex flex-col sm:flex-row sm:items-center min-h-[62px] justify-between border-t-[1px] border-[#E2E8F0] gap-4 sm:gap-2 py-4 sm:py-0 px-4 sm:px-0 mt-6">
+          <div className="flex gap-2 items-center justify-center sm:justify-start">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="sm:w-6 sm:h-6"
+            >
+              <path
+                d="M17.743 3H20.7952L14.1285 10.6707L22 21.0723H15.8153L10.996 14.7671L5.45382 21.0723H2.40161L9.5502 12.8795L2 3H8.34538L12.7229 8.78313L17.743 3ZM16.6586 19.2249H18.3454L7.42169 4.72691H5.5743L16.6586 19.2249Z"
+                fill="#09090B"
+              />
+            </svg>
+            <p className="text-sm sm:text-base text-[#737373] leading-[24px] text-center sm:text-left">
+              Submitted by{" "}
+              {articleData.author && articleData.author[0] ? articleData.author[0].name : "Unknown"}
+            </p>
+          </div>
+          <Button asChild className="w-full sm:w-auto touch-manipulation">
+            <a href={articleData.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="15"
+                viewBox="0 0 17 16"
+                fill="none"
+                className="sm:w-[17px] sm:h-4"
+              >
+                <path
+                  d="M10.5 2H14.5M14.5 2V6M14.5 2L7.16667 9.33333M12.5 8.66667V12.6667C12.5 13.0203 12.3595 13.3594 12.1095 13.6095C11.8594 13.8595 11.5203 14 11.1667 14H3.83333C3.47971 14 3.14057 13.8595 2.89052 13.6095C2.64048 13.3594 2.5 13.0203 2.5 12.6667V5.33333C2.5 4.97971 2.64048 4.64057 2.89052 4.39052C3.14057 4.14048 3.47971 4 3.83333 4H7.83333"
+                  stroke="#F8FAFC"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <p>View Tweet</p>
+            </a>
+          </Button>
+        </div>
+
+        {/* Fallback to description if no content */}
+        {!articleData.content && articleData.description && (
+          <div className="flex flex-col px-4 sm:px-0">
+            <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
+              {articleData.description}
+            </p>
           </div>
         )}
+      </div>
+    </article>
+  );
 
-        {/* Main card (current article) */}
-        <div
-          className="relative transition-transform duration-200 ease-out"
-          style={{
-            transform: `translateX(${dragX}px)`,
-            zIndex: 1,
-          }}
-        >
-          <ArticleCard articleData={item} />
-        </div>
+  // Card stack animations
+  const variants = {
+    enter: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      rotateY: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 400,
+        damping: 35,
+        opacity: { duration: 0.2 },
+      }
+    },
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      rotateY: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 400,
+        damping: 35,
+      }
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? 1200 : -1200,
+      opacity: 0,
+      scale: 0.8,
+      rotateY: direction < 0 ? -25 : 25,
+      transition: {
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 30,
+        opacity: { duration: 0.4 },
+        scale: { duration: 0.5 },
+      }
+    }),
+  };
+
+  // Background card animations during transition
+  const backgroundVariants = {
+    hidden: { scale: 0.9, y: 20, opacity: 0.8 },
+    visible: { 
+      scale: isTransitioning ? 1 : 0.9, 
+      y: isTransitioning ? 0 : 20, 
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 400,
+        damping: 35,
+        duration: 0.4,
+      }
+    },
+  };
+
+  return (
+    <div className="relative w-full max-w-[660px] overflow-visible" style={{ perspective: "1000px" }}>
+      {/* Card Stack Container */}
+      <div className="relative">
+        {/* Background cards (next and previous previews) */}
+        {nextItem && (
+          <motion.div 
+            className="absolute inset-0 pointer-events-none"
+            variants={backgroundVariants}
+            initial="hidden"
+            animate="visible"
+            style={{ zIndex: 0 }}
+          >
+            <ArticleCard articleData={nextItem} isBackground={false} />
+          </motion.div>
+        )}
+        
+        {prevItem && (
+          <motion.div 
+            className="absolute inset-0 pointer-events-none"
+            variants={backgroundVariants}
+            initial="hidden"
+            animate="visible"
+            style={{ 
+              zIndex: -1,
+              transform: `scale(0.85) translateY(40px)`,
+            }}
+          >
+            <ArticleCard articleData={prevItem} isBackground={false} />
+          </motion.div>
+        )}
+
+        {/* Main card (current article) with AnimatePresence for smooth transitions */}
+        <AnimatePresence mode="wait" custom={exitDirection === "left" ? -1 : 1}>
+          <motion.div
+            key={item.id}
+            custom={exitDirection === "left" ? -1 : 1}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            drag="x"
+            dragElastic={0.3}
+            dragConstraints={{ left: -300, right: 300 }}
+            dragMomentum={false}
+            onDragEnd={handleDragEnd}
+            whileDrag={{ 
+              scale: 0.95,
+              rotateY: 0,
+              cursor: "grabbing"
+            }}
+            className="relative cursor-grab active:cursor-grabbing touch-manipulation"
+            style={{ 
+              zIndex: 10,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            <ArticleCard articleData={item} />
+          </motion.div>
+        </AnimatePresence>
       </div>
       
       {/* Navigation Section */}
-      <div className="flex w-full max-w-[660px] px-4 sm:px-[60px] lg:px-[120px] py-[16px] sm:py-[21px] flex-col items-center gap-[10px] rounded-b-[12px] sm:rounded-b-[16px] bg-gradient-to-t from-black/15 via-transparent to-transparent">
-        <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90">
+      <motion.div 
+        className="flex w-full max-w-[660px] px-4 sm:px-[60px] lg:px-[120px] py-[16px] sm:py-[21px] flex-col items-center gap-[10px] rounded-b-[12px] sm:rounded-b-[16px] mt-6 relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: isTransitioning ? 0.5 : 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        style={{ zIndex: 20 }}
+      >
+        <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90 shadow-lg">
           <div className="flex items-center gap-[16px] sm:gap-[28px]">
             {/* Previous Button */}
             {prevItem ? (
@@ -540,7 +523,7 @@ export function ReadingArticle({ item, feedId, prevItem, nextItem, generateSlug 
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

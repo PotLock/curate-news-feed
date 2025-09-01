@@ -241,16 +241,8 @@ function ReadingPage() {
         <ReadingArticle
           item={item}
           feedId={feedId}
-          prevItem={
-            prevItem && prevItem.id
-              ? { id: prevItem.id, title: prevItem.title }
-              : null
-          }
-          nextItem={
-            nextItem && nextItem.id
-              ? { id: nextItem.id, title: nextItem.title }
-              : null
-          }
+          prevItem={prevItem}
+          nextItem={nextItem}
           generateSlug={generateSlug}
         />
 
@@ -298,16 +290,8 @@ function ReadingPage() {
         <ReadingArticle
           item={item}
           feedId={feedId}
-          prevItem={
-            prevItem && prevItem.id
-              ? { id: prevItem.id, title: prevItem.title }
-              : null
-          }
-          nextItem={
-            nextItem && nextItem.id
-              ? { id: nextItem.id, title: nextItem.title }
-              : null
-          }
+          prevItem={prevItem}
+          nextItem={nextItem}
           generateSlug={generateSlug}
         />
         <ReadingActions />
