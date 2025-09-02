@@ -48,7 +48,7 @@ export function ReadingArticle({
   generateSlug,
 }: ReadingArticleProps) {
   const navigate = useNavigate();
-  const { showImages, autoAdvance, readingSpeed } = useReadingSettings();
+  const { showImages, autoAdvance, readingSpeed, textToSpeech } = useReadingSettings();
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
     null
   );
@@ -62,6 +62,11 @@ export function ReadingArticle({
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Text-to-Speech state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isTTSPaused, setIsTTSPaused] = useState(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Auto-advance functionality
   const startAutoAdvance = () => {
@@ -142,6 +147,103 @@ export function ReadingArticle({
   const handleMouseLeave = () => {
     if (autoAdvance && isPaused) resumeAutoAdvance();
   };
+
+  // Text-to-Speech functionality
+  const extractTextContent = (articleData: ArticleItem) => {
+    // Start with title
+    let textToRead = articleData.title + ". ";
+    
+    // Add content if available (parsed and cleaned)
+    const contentParagraphs = parseContent(articleData.content || "");
+    if (contentParagraphs.length > 0) {
+      textToRead += contentParagraphs.join(" ");
+    } else if (articleData.description) {
+      // Fallback to description if no content
+      const cleanDescription = articleData.description
+        .replace(/<[^>]*>/g, " ") // Remove HTML tags
+        .replace(/\s+/g, " ") // Normalize whitespace
+        .trim();
+      textToRead += cleanDescription;
+    }
+    
+    return textToRead;
+  };
+
+  const startTextToSpeech = () => {
+    if (!window.speechSynthesis) {
+      console.warn("Text-to-speech not supported in this browser");
+      return;
+    }
+
+    // Stop any existing speech
+    window.speechSynthesis.cancel();
+    
+    const textToRead = extractTextContent(item);
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    
+    // Configure speech settings
+    utterance.rate = 0.9; // Slightly slower for better comprehension
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    // Set voice if selectedVoice is configured
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      // Use first available voice or find specific voice
+      utterance.voice = voices[0];
+    }
+
+    // Event handlers
+    utterance.onstart = () => {
+      setIsPlaying(true);
+      setIsTTSPaused(false);
+    };
+
+    utterance.onend = () => {
+      setIsPlaying(false);
+      setIsTTSPaused(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event.error);
+      setIsPlaying(false);
+      setIsTTSPaused(false);
+    };
+
+    utteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const pauseTextToSpeech = () => {
+    if (window.speechSynthesis && isPlaying) {
+      window.speechSynthesis.pause();
+      setIsTTSPaused(true);
+    }
+  };
+
+  const resumeTextToSpeech = () => {
+    if (window.speechSynthesis && isTTSPaused) {
+      window.speechSynthesis.resume();
+      setIsTTSPaused(false);
+    }
+  };
+
+  const stopTextToSpeech = () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+      setIsTTSPaused(false);
+    }
+  };
+
+  // Clean up TTS when component unmounts or article changes
+  useEffect(() => {
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [item.id]);
 
   const handleDrag = (
     _: MouseEvent | TouchEvent | PointerEvent,
@@ -624,23 +726,91 @@ export function ReadingArticle({
               </Button>
             )}
 
-            {/* Play Button */}
-            <Button className="flex p-[10px] sm:p-[14px] items-center gap-[10px] rounded-full border-[0.667px] border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:bg-gray-50 touch-manipulation">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 21 21"
-                fill="none"
-                className="sm:w-[21px] sm:h-[21px]"
+            {/* Text-to-Speech Play/Pause/Stop Button - Only show when TTS is enabled */}
+            {textToSpeech && (
+              <Button 
+                onClick={() => {
+                  if (!isPlaying) {
+                    startTextToSpeech();
+                  } else if (isTTSPaused) {
+                    resumeTextToSpeech();
+                  } else {
+                    pauseTextToSpeech();
+                  }
+                }}
+                className={`flex p-[10px] sm:p-[14px] items-center gap-[10px] rounded-full border-[0.667px] border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] touch-manipulation transition-colors ${
+                  isPlaying ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-gray-50'
+                }`}
               >
-                <path
-                  d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
-                  stroke="#1C274C"
-                  strokeWidth="1.5"
-                />
-              </svg>
+              {!isPlaying ? (
+                // Play icon
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 21 21"
+                  fill="none"
+                  className="sm:w-[21px] sm:h-[21px]"
+                >
+                  <path
+                    d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
+                    stroke={isPlaying ? "#2563EB" : "#1C274C"}
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              ) : isTTSPaused ? (
+                // Play icon (to resume)
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 21 21"
+                  fill="none"
+                  className="sm:w-[21px] sm:h-[21px]"
+                >
+                  <path
+                    d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
+                    stroke="#2563EB"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              ) : (
+                // Pause icon
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="sm:w-[21px] sm:h-[21px]"
+                >
+                  <rect x="6" y="4" width="4" height="16" fill="#2563EB"/>
+                  <rect x="14" y="4" width="4" height="16" fill="#2563EB"/>
+                </svg>
+              )}
             </Button>
+            )}
+            
+            {/* Stop Button - Only show when TTS enabled and playing */}
+            {textToSpeech && isPlaying && (
+              <Button 
+                onClick={stopTextToSpeech}
+                variant="ghost"
+                size="sm"
+                className="flex p-2 items-center rounded-full hover:bg-red-50 touch-manipulation"
+                title="Stop reading"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <rect x="6" y="6" width="12" height="12" fill="#DC2626"/>
+                </svg>
+              </Button>
+            )}
 
             {/* Next Button */}
             {nextItem ? (

@@ -250,7 +250,11 @@ function ReadingPage() {
 
           {/* Mobile Actions */}
           <div className="flex justify-center">
-            <ReadingActions />
+            <ReadingActions 
+              articleTitle={item.title}
+              articleUrl={window.location.href}
+              articleId={item.id || item.title}
+            />
           </div>
         </div>
 
@@ -296,7 +300,11 @@ function ReadingPage() {
             nextItem={nextItem}
             generateSlug={generateSlug}
           />
-          <ReadingActions />
+          <ReadingActions 
+            articleTitle={item.title}
+            articleUrl={window.location.href}
+            articleId={item.id || item.title}
+          />
         </div>
 
         {/* <ReadingNavigation
