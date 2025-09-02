@@ -31,7 +31,12 @@ export default function FeedSidebar() {
         className="p-2 h-[69px] flex items-center justify-center"
         style={{ backgroundColor: "#FAFAFA" }}
       >
-        <img src={logoImg} alt="Curate.fun Logo" className="h-8 w-auto" />
+        <Link
+          to="/"
+          className="hover:opacity-80 transition-opacity cursor-pointer"
+        >
+          <img src={logoImg} alt="Curate.fun Logo" className="h-8 w-auto" />
+        </Link>
       </SidebarHeader>
 
       <SidebarContent

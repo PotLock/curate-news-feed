@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { UserMenu } from "./user-menu";
 import { Button } from "./ui/button";
 import { SubmitNewsPopup } from "./SubmitNewsPopup";
@@ -12,7 +13,12 @@ export default function ProfileHeader() {
       <div className="flex h-[69px] items-center justify-between px-4 sm:px-8 py-[10px]">
         {/* Logo - Left Side */}
         <div className="flex items-center">
-          <img src={logoImg} alt="Curate.fun Logo" className="h-8 w-auto" />
+          <Link 
+            to="/"
+            className="hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            <img src={logoImg} alt="Curate.fun Logo" className="h-8 w-auto" />
+          </Link>
         </div>
         
         {/* Right Side Actions */}

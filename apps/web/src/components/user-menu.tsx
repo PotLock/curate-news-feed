@@ -86,7 +86,11 @@ export function UserMenu() {
       <DropdownMenuContent className="bg-card w-56 mr-4">
         <DropdownMenuLabel className="py-3">My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="py-3 text-sm">{session.user.name}</DropdownMenuItem>
+        <DropdownMenuItem asChild className="py-3 text-sm cursor-pointer">
+          <Link to="/profile" className="w-full block">
+            {session.user.name}
+          </Link>
+        </DropdownMenuItem>
         {profile && (
           <DropdownMenuItem className="py-3">
             <div className="flex items-center space-x-2">

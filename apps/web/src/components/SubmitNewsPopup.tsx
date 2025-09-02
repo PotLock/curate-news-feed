@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "@tanstack/react-router";
+import { authClient } from "@/lib/auth-client";
 import submtImg from "@/assets/Light/submit.png";
 
 interface SubmitNewsPopupProps {
@@ -22,12 +24,32 @@ export function SubmitNewsPopup({
   onOpenChange,
   trigger,
 }: SubmitNewsPopupProps) {
+  const [session, setSession] = useState<any>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [title, setTitle] = useState("");
   const [twitterUrl, setTwitterUrl] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("Public Goods");
   const [ecosystemTags, setEcosystemTags] = useState<EcosystemTag[]>([]);
   const [ecosystemInput, setEcosystemInput] = useState("");
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const { data: sessionData } = await authClient.getSession();
+        setSession(sessionData);
+      } catch (error) {
+        console.error("Failed to fetch session:", error);
+        setSession(null);
+      } finally {
+        setIsLoadingAuth(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchSession();
+    }
+  }, [isOpen]);
 
   const handleEcosystemKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === " " && ecosystemInput.trim()) {
@@ -86,8 +108,22 @@ export function SubmitNewsPopup({
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="w-full px-[50px] pb-8">
+        {/* Content */}
+        {isLoadingAuth ? (
+          <div className="w-full px-[50px] pb-8 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        ) : !session ? (
+          <div className="w-full px-[50px] pb-8 flex flex-col items-center gap-6">
+            <p className="text-neutral-600 text-center font-inter text-base">
+              Please log in to continue
+            </p>
+            <Button asChild className="w-full max-w-[200px]">
+              <Link to="/login">Login</Link>
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="w-full px-[50px] pb-8">
           <div className="flex flex-col gap-5">
             {/* Title Input */}
             <div className="flex flex-col gap-2 w-full">
@@ -205,7 +241,8 @@ export function SubmitNewsPopup({
               Submit
             </Button>
           </div>
-        </form>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
