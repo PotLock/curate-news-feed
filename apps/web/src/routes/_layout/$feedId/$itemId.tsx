@@ -44,7 +44,7 @@ function ItemPage() {
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center text-red-600 dark:text-red-400">
+        <div className="text-center text-red-600">
           Error loading article: {error.message}
         </div>
       </div>
@@ -55,10 +55,10 @@ function ItemPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
             Article Not Found
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 mb-6">
             The article you're looking for could not be found.
           </p>
           <Link
@@ -79,25 +79,25 @@ function ItemPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Navigation */}
       <div className="mb-6">
-        <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400">
+        <nav className="flex items-center gap-2 text-sm text-gray-600">
+          <Link to="/" className="hover:text-blue-600">
             Home
           </Link>
           <span>/</span>
           <Link
             to="/$feedId"
             params={{ feedId }}
-            className="hover:text-blue-600 dark:hover:text-blue-400"
+            className="hover:text-blue-600"
           >
             {data.feedTitle}
           </Link>
           <span>/</span>
-          <span className="text-gray-900 dark:text-white">{item.title}</span>
+          <span className="text-gray-900">{item.title}</span>
         </nav>
       </div>
 
       {/* Article */}
-      <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <article className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
         {/* Hero Image */}
         {getImageUrl(item.image) && (
           <div className="aspect-video w-full overflow-hidden">
@@ -111,12 +111,12 @@ function ItemPage() {
 
         <div className="p-8">
           {/* Title */}
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
             {item.title}
           </h1>
 
           {/* Meta Information */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6 pb-6 border-b border-gray-200 dark:border-gray-600">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6 pb-6 border-b border-gray-200">
             {item.author && item.author[0] && (
               <Author author={item.author[0]} />
             )}
@@ -136,7 +136,7 @@ function ItemPage() {
           {/* Description */}
           {item.description && (
             <div className="mb-6">
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-gray-700 leading-relaxed">
                 {item.description}
               </p>
             </div>
@@ -146,7 +146,7 @@ function ItemPage() {
           {item.content && (
             <div className="mb-8">
               <div
-                className="prose prose-lg dark:prose-invert max-w-none"
+                className="prose prose-lg max-w-none"
                 dangerouslySetInnerHTML={{ __html: item.content }}
               />
             </div>
@@ -178,7 +178,7 @@ function ItemPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-600">
+          <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-gray-200">
             <a
               href={item.link}
               target="_blank"
@@ -203,7 +203,7 @@ function ItemPage() {
             <Link
               to="/$feedId"
               params={{ feedId }}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors"
             >
               <svg
                 className="w-4 h-4"
@@ -224,8 +224,8 @@ function ItemPage() {
 
           {/* Copyright */}
           {item.copyright && (
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
                 {item.copyright}
               </p>
             </div>

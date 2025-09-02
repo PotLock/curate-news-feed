@@ -27,7 +27,6 @@ export function ReadingHeader({
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [textToSpeech, setTextToSpeech] = useState(false);
   const [voiceSettings, setVoiceSettings] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [showImages, setShowImages] = useState(true);
   const [readingReminders, setReadingReminders] = useState(false);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
@@ -76,8 +75,6 @@ export function ReadingHeader({
             onTextToSpeechChange={setTextToSpeech}
             voiceSettings={voiceSettings}
             onVoiceSettingsChange={setVoiceSettings}
-            darkMode={darkMode}
-            onDarkModeChange={setDarkMode}
             showImages={showImages}
             onShowImagesChange={setShowImages}
             readingReminders={readingReminders}
@@ -107,8 +104,6 @@ export function ReadingHeader({
           onTextToSpeechChange={setTextToSpeech}
           voiceSettings={voiceSettings}
           onVoiceSettingsChange={setVoiceSettings}
-          darkMode={darkMode}
-          onDarkModeChange={setDarkMode}
           showImages={showImages}
           onShowImagesChange={setShowImages}
           readingReminders={readingReminders}

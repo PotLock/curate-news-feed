@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { X, Search } from "lucide-react";
 
-import { ModeToggle } from "./mode-toggle";
 import { UserMenu } from "./user-menu";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -53,7 +52,6 @@ export default function Header() {
           >
             Submit News
           </Button>
-          <ModeToggle className="hidden sm:inline-flex" />
           <UserMenu />
         </div>
       </div>
@@ -88,10 +86,6 @@ export default function Header() {
                 Submit News
               </Button>
               
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Theme</span>
-                <ModeToggle />
-              </div>
             </div>
           </div>
         </div>

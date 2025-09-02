@@ -26,8 +26,6 @@ interface ReadingSettingsDialogProps {
   onTextToSpeechChange: (value: boolean) => void;
   voiceSettings: boolean;
   onVoiceSettingsChange: (value: boolean) => void;
-  darkMode: boolean;
-  onDarkModeChange: (value: boolean) => void;
   showImages: boolean;
   onShowImagesChange: (value: boolean) => void;
   readingReminders: boolean;
@@ -51,8 +49,6 @@ export function ReadingSettingsDialog({
   onTextToSpeechChange,
   voiceSettings,
   onVoiceSettingsChange,
-  darkMode,
-  onDarkModeChange,
   showImages,
   onShowImagesChange,
   readingReminders,
@@ -121,8 +117,6 @@ export function ReadingSettingsDialog({
             <TabsContent value="general">
               <div className="flex flex-col gap-4">
                 <AppearanceSettings
-                  darkMode={darkMode}
-                  onDarkModeChange={onDarkModeChange}
                   showImages={showImages}
                   onShowImagesChange={onShowImagesChange}
                 />

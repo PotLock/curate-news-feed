@@ -26,7 +26,7 @@ export function Enclosure({ enclosure, type }: EnclosureProps) {
   };
 
   const getIcon = () => {
-    const iconClass = "w-4 h-4 text-gray-600 dark:text-gray-400";
+    const iconClass = "w-4 h-4 text-gray-600";
     
     if (type === 'audio' || enclosure.type?.startsWith('audio/')) {
       return (
@@ -94,7 +94,7 @@ export function Enclosure({ enclosure, type }: EnclosureProps) {
         href={enclosure.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
       >
         Download {enclosure.type || 'file'}
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,13 +105,13 @@ export function Enclosure({ enclosure, type }: EnclosureProps) {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+    <div className="bg-gray-50 rounded-lg p-3">
       <div className="flex items-center gap-2 mb-2">
         {getIcon()}
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span className="text-sm font-medium text-gray-700">
           {enclosure.title || type || 'Media'}
         </span>
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 ml-auto">
+        <div className="flex items-center gap-2 text-xs text-gray-500 ml-auto">
           {enclosure.length && (
             <span>{formatFileSize(enclosure.length)}</span>
           )}

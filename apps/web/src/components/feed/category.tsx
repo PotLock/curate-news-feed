@@ -11,7 +11,7 @@ export function Category({ category, variant = 'default' }: CategoryProps) {
     ? "px-2 py-1 text-xs" 
     : "px-3 py-1 text-sm";
   
-  const colorClasses = "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800";
+  const colorClasses = "bg-blue-100 text-blue-800 hover:bg-blue-200";
 
   const content = (
     <span className={`${baseClasses} ${variantClasses} ${colorClasses}`}>
@@ -51,7 +51,7 @@ export function Categories({ categories, variant = 'default', maxDisplay }: Cate
         <Category key={idx} category={category} variant={variant} />
       ))}
       {remainingCount > 0 && (
-        <span className={`${variant === 'small' ? 'px-2 py-1 text-xs' : 'px-3 py-1 text-sm'} font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400`}>
+        <span className={`${variant === 'small' ? 'px-2 py-1 text-xs' : 'px-3 py-1 text-sm'} font-medium rounded-full bg-gray-100 text-gray-600`}>
           +{remainingCount} more
         </span>
       )}

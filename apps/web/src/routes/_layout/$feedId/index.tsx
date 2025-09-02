@@ -103,7 +103,7 @@ function FeedPage() {
     return (
       <div className="mx-auto max-w-[1440px] p-4 sm:p-6">
         <div className="text-center space-y-4 py-12">
-          <h1 className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
+          <h1 className="text-xl sm:text-2xl font-bold text-red-600">
             Error Loading Feed
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">

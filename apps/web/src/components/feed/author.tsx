@@ -21,19 +21,19 @@ export function Author({ author, showEmail = false }: AuthorProps) {
             href={author.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
           >
             {author.name}
           </a>
         ) : (
-          <span className="text-sm font-medium text-gray-900 dark:text-white">
+          <span className="text-sm font-medium text-gray-900">
             {author.name}
           </span>
         )}
         {showEmail && author.email && (
           <a
             href={`mailto:${author.email}`}
-            className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-xs text-gray-500 hover:text-blue-600 transition-colors"
           >
             {author.email}
           </a>

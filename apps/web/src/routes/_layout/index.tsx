@@ -37,7 +37,7 @@ function HomeComponent() {
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center text-red-600 dark:text-red-400">
+        <div className="text-center text-red-600">
           Error loading feeds: {error.message}
         </div>
       </div>

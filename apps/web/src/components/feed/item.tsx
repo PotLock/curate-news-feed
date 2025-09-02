@@ -36,7 +36,7 @@ export function Item({ data, index }: ItemProps) {
        .replace(/^-|-$/g, '');
 
   return (
-    <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <article className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
       {/* Image */}
       {getImageUrl(data.image) && (
         <div className="aspect-video w-full overflow-hidden">
@@ -51,19 +51,19 @@ export function Item({ data, index }: ItemProps) {
 
       <div className="p-6">
         {/* Title */}
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+        <h2 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
           <a
             href={data.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="hover:text-blue-600 transition-colors"
           >
             {data.title}
           </a>
         </h2>
 
         {/* Author and Date */}
-        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
           {data.author && data.author[0] && (
             <Author author={data.author[0]} />
           )}
@@ -81,7 +81,7 @@ export function Item({ data, index }: ItemProps) {
 
         {/* Description */}
         {data.description && (
-          <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
+          <p className="text-gray-700 mb-4 line-clamp-3">
             {data.description}
           </p>
         )}
@@ -111,7 +111,7 @@ export function Item({ data, index }: ItemProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center gap-3">
             <Link
               to="/$feedId/$itemId"
@@ -119,7 +119,7 @@ export function Item({ data, index }: ItemProps) {
                 feedId: params.feedId,
                 itemId: normalizeId(data.title)
               }}
-              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
             >
               View Details
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@ export function Item({ data, index }: ItemProps) {
               href={data.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
             >
               External Link
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,7 +140,7 @@ export function Item({ data, index }: ItemProps) {
           </div>
           
           {data.published && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-gray-500">
               Published: {formatDate(data.published)}
             </span>
           )}
