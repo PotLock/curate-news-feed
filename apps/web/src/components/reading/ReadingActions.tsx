@@ -14,6 +14,7 @@ interface ReadingActionsProps {
 export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: ReadingActionsProps) {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
+  const [isLiked, setIsLiked] = useState<boolean | null>(null); // null = no preference, true = liked, false = disliked
   const [userAccountId, setUserAccountId] = useState<string | null>(null);
 
   // Get user account ID
@@ -51,6 +52,16 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
     const storageKey = `saved-articles-${userAccountId}`;
     const savedArticles = JSON.parse(localStorage.getItem(storageKey) || '{}');
     setIsSaved(!!savedArticles[articleId]);
+  }, [articleId, userAccountId]);
+
+  // Load like/dislike preference from user-specific localStorage
+  useEffect(() => {
+    if (!userAccountId) return;
+    
+    const preferencesKey = `article-preferences-${userAccountId}`;
+    const preferences = JSON.parse(localStorage.getItem(preferencesKey) || '{}');
+    const preference = preferences[articleId];
+    setIsLiked(preference?.liked ?? null); // null if no preference set
   }, [articleId, userAccountId]);
 
   // Track article in reading history
@@ -110,6 +121,38 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
     }
   };
 
+  // Handle like/dislike article
+  const handleLikeDislike = (liked: boolean) => {
+    if (!userAccountId) {
+      toast.error("Please log in to like/dislike articles");
+      return;
+    }
+
+    const preferencesKey = `article-preferences-${userAccountId}`;
+    const preferences = JSON.parse(localStorage.getItem(preferencesKey) || '{}');
+    
+    if (isLiked === liked) {
+      // User is clicking the same preference - remove it (toggle off)
+      delete preferences[articleId];
+      setIsLiked(null);
+      toast.success(liked ? "Like removed" : "Dislike removed");
+    } else {
+      // Set new preference
+      preferences[articleId] = {
+        id: articleId,
+        title: articleTitle,
+        url: articleUrl,
+        feedId: feedId,
+        liked: liked,
+        preferenceAt: new Date().toISOString()
+      };
+      setIsLiked(liked);
+      toast.success(liked ? "Article liked!" : "Article disliked");
+    }
+    
+    localStorage.setItem(preferencesKey, JSON.stringify(preferences));
+  };
+
   // Share article
   const handleShare = async () => {
     try {
@@ -163,6 +206,52 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
             d="M9.95209 1.04163C8.22495 1.04161 6.8643 1.0416 5.80107 1.1861C4.70935 1.33447 3.83841 1.64553 3.15403 2.33732C2.47058 3.02818 2.1641 3.90581 2.01775 5.00614C1.87498 6.07955 1.87499 7.45381 1.875 9.20085V13.4491C1.87499 14.7054 1.87498 15.7001 1.95501 16.449C2.03409 17.189 2.20373 17.8567 2.6882 18.3031C3.07688 18.6613 3.56842 18.8872 4.09304 18.9472C4.74927 19.0223 5.36199 18.7089 5.96557 18.2814C6.57636 17.8487 7.3173 17.1934 8.25212 16.3665L8.28254 16.3396C8.71593 15.9563 9.00935 15.6976 9.25416 15.5186C9.49076 15.3456 9.63522 15.2831 9.75698 15.2585C9.91743 15.2262 10.0826 15.2262 10.243 15.2585C10.3648 15.2831 10.5092 15.3456 10.7458 15.5186C10.9906 15.6976 11.2841 15.9563 11.7175 16.3396L11.7479 16.3666C12.6827 17.1934 13.4237 17.8488 14.0344 18.2814C14.638 18.7089 15.2507 19.0223 15.907 18.9472C16.4316 18.8872 16.9231 18.6613 17.3118 18.3031C17.7963 17.8567 17.9659 17.189 18.045 16.449C18.125 15.7001 18.125 14.7054 18.125 13.4492V9.20083C18.125 7.45381 18.125 6.07954 17.9823 5.00614C17.8359 3.90581 17.5294 3.02818 16.846 2.33732C16.1616 1.64553 15.2907 1.33447 14.1989 1.1861C13.1357 1.0416 11.7751 1.04161 10.0479 1.04163H9.95209ZM4.04267 3.21643C4.45664 2.79797 5.01876 2.55391 5.9694 2.42471C6.93871 2.29298 8.21438 2.29163 10 2.29163C11.7856 2.29163 13.0613 2.29298 14.0306 2.42471C14.9812 2.55391 15.5434 2.79797 15.9573 3.21643C16.3722 3.63582 16.6149 4.20678 16.7432 5.17094C16.8737 6.15239 16.875 7.44349 16.875 9.24789V13.409C16.875 14.7143 16.8741 15.6418 16.8021 16.3161C16.7282 17.0073 16.592 17.2667 16.4647 17.384C16.2699 17.5635 16.0248 17.6755 15.7649 17.7053C15.5985 17.7243 15.3196 17.6599 14.757 17.2614C14.2081 16.8726 13.5176 16.263 12.5456 15.4033L12.5238 15.384C12.1177 15.0249 11.781 14.727 11.4837 14.5096C11.1728 14.2823 10.8594 14.1076 10.4899 14.0332C10.1665 13.968 9.83352 13.968 9.51015 14.0332C9.14064 14.1076 8.82715 14.2823 8.51633 14.5096C8.21902 14.727 7.88226 15.0249 7.47621 15.384L7.45439 15.4033C6.48239 16.263 5.79189 16.8726 5.24304 17.2614C4.68038 17.6599 4.40151 17.7243 4.23515 17.7053C3.97516 17.6755 3.73014 17.5635 3.53531 17.384C3.40803 17.2667 3.27179 17.0073 3.19793 16.3161C3.12587 15.6418 3.125 14.7143 3.125 13.409V9.24789C3.125 7.44349 3.1263 6.15239 3.25684 5.17094C3.38508 4.20678 3.62777 3.63582 4.04267 3.21643Z"
             fill={isSaved ? "#2563EB" : "#1C274D"}
           />
+        </svg>
+      </Button>
+
+      {/* Like Button */}
+      <Button
+        onClick={() => handleLikeDislike(true)}
+        variant="outline"
+        className={`border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation transition-colors ${
+          isLiked === true ? 'bg-green-50 border-green-200' : 'bg-[#FFFFFFF2]'
+        }`}
+        title={isLiked === true ? "Remove like" : "Like article"}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          className="lg:w-5 lg:h-5"
+          viewBox="0 0 24 24"
+          fill={isLiked === true ? "#16A34A" : "none"}
+          stroke={isLiked === true ? "#16A34A" : "#1C274D"}
+          strokeWidth="2"
+        >
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </Button>
+
+      {/* Dislike Button */}
+      <Button
+        onClick={() => handleLikeDislike(false)}
+        variant="outline"
+        className={`border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation transition-colors ${
+          isLiked === false ? 'bg-red-50 border-red-200' : 'bg-[#FFFFFFF2]'
+        }`}
+        title={isLiked === false ? "Remove dislike" : "Dislike article"}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          className="lg:w-5 lg:h-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={isLiked === false ? "#DC2626" : "#1C274D"}
+          strokeWidth="2"
+        >
+          <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
       </Button>
       

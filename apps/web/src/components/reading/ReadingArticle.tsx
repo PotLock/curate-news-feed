@@ -5,6 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "motion/react";
 import type { PanInfo } from "motion/react";
 import { useReadingSettings } from "@/contexts/reading-settings-context";
+import { authClient } from "@/lib/auth-client";
 
 interface ArticleItem {
   id?: string;
@@ -245,6 +246,41 @@ export function ReadingArticle({
     };
   }, [item.id]);
 
+  // Save like/dislike preference to localStorage
+  const saveLikeDislikePreference = async (liked: boolean) => {
+    try {
+      const { data: session } = await authClient.getSession();
+      if (session?.user) {
+        // Get user account ID (same logic as ReadingActions)
+        let accountId: string;
+        try {
+          const { data: nearProfile } = await authClient.near.getProfile();
+          accountId = (window as any)?.near?.accountId?.() || 
+                     session.user.email ||
+                     session.user.id;
+        } catch {
+          accountId = session.user.email || session.user.id;
+        }
+
+        const preferencesKey = `article-preferences-${accountId}`;
+        const preferences = JSON.parse(localStorage.getItem(preferencesKey) || '{}');
+        
+        preferences[item.id || item.title] = {
+          id: item.id || item.title,
+          title: item.title,
+          url: item.link,
+          feedId: feedId,
+          liked: liked,
+          preferenceAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem(preferencesKey, JSON.stringify(preferences));
+      }
+    } catch (error) {
+      console.warn('Failed to save preference:', error);
+    }
+  };
+
   const handleDrag = (
     _: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
@@ -273,21 +309,15 @@ export function ReadingArticle({
       // Pause auto-advance when user manually navigates
       if (autoAdvance) pauseAutoAdvance();
       
-      if (offset > 0 && prevItem) {
-        // Swipe right - go to previous
+      // Save like/dislike preference based on swipe direction
+      const liked = offset > 0; // Right swipe = like, Left swipe = dislike
+      saveLikeDislikePreference(liked);
+      
+      // Both left and right swipes go to next article (if available)
+      if (nextItem) {
         setIsTransitioning(true);
-        setExitDirection("right");
-        // Wait for exit animation to complete (spring animation + opacity fade)
-        setTimeout(() => {
-          navigate({
-            to: "/reading/$feedId/$slug",
-            params: { feedId, slug: generateSlug(prevItem.title) },
-          });
-        }, 600); // Increased to match animation duration
-      } else if (offset < 0 && nextItem) {
-        // Swipe left - go to next
-        setIsTransitioning(true);
-        setExitDirection("left");
+        // Set exit direction based on swipe direction for proper animation
+        setExitDirection(offset > 0 ? "right" : "left");
         // Wait for exit animation to complete (spring animation + opacity fade)
         setTimeout(() => {
           navigate({
@@ -634,6 +664,56 @@ export function ReadingArticle({
             }}
           >
             <ArticleCard articleData={item} />
+            
+            {/* Swipe hints - Green for like (right), Red for dislike (left) */}
+            {dragDirection && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className={`absolute inset-0 rounded-2xl flex items-center justify-center pointer-events-none z-20 ${
+                  dragDirection === "right" 
+                    ? "bg-green-500/20 border-2 border-green-500/50" 
+                    : "bg-red-500/20 border-2 border-red-500/50"
+                }`}
+              >
+                <div className={`flex flex-col items-center gap-2 ${
+                  dragDirection === "right" ? "text-green-600" : "text-red-600"
+                }`}>
+                  {dragDirection === "right" ? (
+                    <>
+                      {/* Like/Heart icon */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="drop-shadow-lg"
+                      >
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                      <span className="text-lg font-bold drop-shadow-lg">LIKE</span>
+                    </>
+                  ) : (
+                    <>
+                      {/* Dislike/X icon */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="drop-shadow-lg"
+                      >
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                      </svg>
+                      <span className="text-lg font-bold drop-shadow-lg">PASS</span>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            )}
             
             {/* Auto-advance countdown indicator */}
             {autoAdvance && nextItem && timeRemaining > 0 && (

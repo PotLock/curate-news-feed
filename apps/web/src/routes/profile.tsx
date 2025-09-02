@@ -221,6 +221,7 @@ interface ReadingHistoryArticle {
 function OverviewTab({ session }: { session: any }) {
   const [historyArticles, setHistoryArticles] = useState<ReadingHistoryArticle[]>([]);
   const [savedArticles, setSavedArticles] = useState<SavedArticle[]>([]);
+  const [likedArticles, setLikedArticles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userAccountId, setUserAccountId] = useState<string | null>(null);
 
@@ -264,6 +265,20 @@ function OverviewTab({ session }: { session: any }) {
             articlesArray.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
             setSavedArticles(articlesArray);
           }
+
+          // Load article preferences (likes/dislikes) from localStorage
+          const preferencesKey = `article-preferences-${accountId}`;
+          const preferencesData = localStorage.getItem(preferencesKey);
+          
+          if (preferencesData) {
+            const preferencesObj = JSON.parse(preferencesData);
+            const preferencesArray = Object.values(preferencesObj) as any[];
+            // Filter only liked articles and sort by preference date (newest first)
+            const likedArray = preferencesArray
+              .filter((pref: any) => pref.liked === true)
+              .sort((a, b) => new Date(b.preferenceAt).getTime() - new Date(a.preferenceAt).getTime());
+            setLikedArticles(likedArray);
+          }
         }
       } catch (error) {
         console.warn('Failed to load stats:', error);
@@ -277,7 +292,7 @@ function OverviewTab({ session }: { session: any }) {
 
   // Calculate stats from the loaded arrays (same approach as history tabs)
   const totalArticlesRead = historyArticles.length;
-  const totalArticlesSaved = savedArticles.length;
+  const totalArticlesLiked = likedArticles.length;
   
   // Count articles read today
   const today = new Date().toDateString();
@@ -335,8 +350,8 @@ function OverviewTab({ session }: { session: any }) {
             </svg>
           </div>
           <div className="flex flex-col items-end">
-            <p className="text-white text-right font-inter text-[30px] font-bold leading-9">{totalArticlesSaved}</p>
-            <p className="text-[#DBEAFE] text-right font-inter text-base font-normal leading-6">Articles Saved</p>
+            <p className="text-white text-right font-inter text-[30px] font-bold leading-9">{totalArticlesLiked}</p>
+            <p className="text-[#DBEAFE] text-right font-inter text-base font-normal leading-6">Articles Liked</p>
           </div>
         </div>
       </div>

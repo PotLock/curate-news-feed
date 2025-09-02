@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { NearProfile } from "./near-profile";
+import { User } from "lucide-react";
 
 interface Profile {
   name?: string;
@@ -38,7 +39,7 @@ export function UserMenu() {
       try {
         const { data: sessionData } = await authClient.getSession();
         setSession(sessionData);
-        
+
         if (sessionData) {
           try {
             const { data: response } = await authClient.near.getProfile();
@@ -79,34 +80,20 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center space-x-2 min-h-9 touch-manipulation">
+        <Button
+          variant="outline"
+          className="flex items-center space-x-2 min-h-9 touch-manipulation"
+        >
           <NearProfile variant="badge" showAvatar={true} showName={true} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card w-56 mr-4">
-        <DropdownMenuLabel className="py-3">My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="py-3 text-sm cursor-pointer">
           <Link to="/profile" className="w-full block">
-            {session.user.name}
+            <User /> My Profile
           </Link>
         </DropdownMenuItem>
-        {profile && (
-          <DropdownMenuItem className="py-3">
-            <div className="flex items-center space-x-2">
-              {avatarUrl && (
-                <img
-                  src={avatarUrl}
-                  alt="NEAR Profile"
-                  className="h-4 w-4 rounded-full object-cover"
-                />
-              )}
-              <span className="text-xs text-muted-foreground">
-                {profile.name || "Connected"}
-              </span>
-            </div>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Button
             variant="destructive"
