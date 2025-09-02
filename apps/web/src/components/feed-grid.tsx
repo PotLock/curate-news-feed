@@ -29,7 +29,6 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   const filteredItems = useSearchFilter(items, searchQuery) as IFeedItem[];
   const [selectedCategory, setSelectedCategory] = useState("trending");
 
-
   // Color scheme for cards
   const getCardColor = (itemIndex: number) => {
     const colors = [
@@ -193,8 +192,12 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const maxVisibleBadges = 2;
-                      const visibleCategories = item.category!.slice(0, maxVisibleBadges);
-                      const hiddenCount = item.category!.length - maxVisibleBadges;
+                      const visibleCategories = item.category!.slice(
+                        0,
+                        maxVisibleBadges
+                      );
+                      const hiddenCount =
+                        item.category!.length - maxVisibleBadges;
 
                       // Get badge styling based on card background color
                       const getBadgeStyle = () => {
@@ -265,17 +268,11 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                   feedId: feedId,
                   slug: generateSlug(displayItems[0].title),
                 }}
-                className="flex items-center justify-center gap-2 w-[200px] sm:w-[229px] px-4 sm:px-6 py-3 bg-white/10 text-white font-inter text-lg sm:text-xl font-medium leading-6 sm:leading-[37.333px] rounded-[45.5px] hover:bg-white/20 transition-colors border-t border-b border-white touch-manipulation"
+                className="flex items-center backdrop-blur-sm justify-center gap-2 w-[200px] sm:w-[229px] px-4 sm:px-6 py-3 bg-white/10 text-white font-inter text-lg sm:text-xl font-medium leading-6 sm:leading-[37.333px] rounded-[45.5px] hover:bg-white/20 transition-colors border-t border-b border-white touch-manipulation"
               >
                 Start Reading
                 <ArrowRight size={18} className="sm:w-[21px] sm:h-[21px]" />
               </Link>
-            )}
-            {displayItems.length > 0 && !feedId && (
-              <div className="flex items-center justify-center gap-2 w-[200px] sm:w-[229px] px-4 sm:px-6 py-3 bg-white/5 text-white/50 font-inter text-lg sm:text-xl font-medium leading-6 sm:leading-[37.333px] rounded-[45.5px] cursor-not-allowed">
-                Start Reading
-                <ArrowRight size={18} className="sm:w-[21px] sm:h-[21px]" />
-              </div>
             )}
           </div>
         </div>
