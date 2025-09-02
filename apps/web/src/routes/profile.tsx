@@ -241,9 +241,7 @@ function RouteComponent() {
             </TabsContent>
 
             <TabsContent value="history" className="mt-6">
-              <div className="text-center py-12 text-gray-500">
-                <p>History content will be implemented here</p>
-              </div>
+              <ReadingHistoryTab session={session} />
             </TabsContent>
 
             <TabsContent value="saved" className="mt-6">
@@ -262,6 +260,169 @@ interface SavedArticle {
   url: string;
   feedId: string;
   savedAt: string;
+}
+
+interface ReadingHistoryArticle {
+  id: string;
+  title: string;
+  url: string;
+  feedId: string;
+  readAt: string;
+  firstReadAt: string;
+}
+
+function ReadingHistoryTab({ session }: { session: any }) {
+  const [historyArticles, setHistoryArticles] = useState<ReadingHistoryArticle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userAccountId, setUserAccountId] = useState<string | null>(null);
+
+  // Get user account ID and load reading history
+  useEffect(() => {
+    const loadReadingHistory = async () => {
+      try {
+        if (session?.user) {
+          // Try to get NEAR account ID
+          let accountId: string;
+          try {
+            const { data: nearProfile } = await authClient.near.getProfile();
+            accountId = (window as any)?.near?.accountId?.() || 
+                       nearProfile?.accountId ||
+                       session.user.email ||
+                       session.user.id;
+          } catch {
+            accountId = session.user.email || session.user.id;
+          }
+          
+          setUserAccountId(accountId);
+          
+          // Load reading history from localStorage
+          const historyKey = `reading-history-${accountId}`;
+          const historyData = localStorage.getItem(historyKey);
+          
+          if (historyData) {
+            const historyObj = JSON.parse(historyData);
+            const historyArray = Object.values(historyObj) as ReadingHistoryArticle[];
+            // Sort by last read date (newest first)
+            historyArray.sort((a, b) => new Date(b.readAt).getTime() - new Date(a.readAt).getTime());
+            setHistoryArticles(historyArray);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load reading history:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadReadingHistory();
+  }, [session]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="p-4 border border-gray-200 rounded-lg">
+            <Skeleton className="h-6 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (historyArticles.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <div className="mb-4">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-1">No reading history</h3>
+        <p className="text-gray-500 mb-4">Articles you read will appear here</p>
+        <Link to="/">
+          <Button variant="outline">
+            Start Reading
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleClearHistory = () => {
+    if (!userAccountId) return;
+    
+    if (confirm('Are you sure you want to clear all reading history?')) {
+      const historyKey = `reading-history-${userAccountId}`;
+      localStorage.removeItem(historyKey);
+      setHistoryArticles([]);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Clear history button */}
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-gray-900">Reading History ({historyArticles.length})</h3>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleClearHistory}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          Clear History
+        </Button>
+      </div>
+
+      {historyArticles.map((article) => (
+        <div key={article.id} className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h4 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                {article.title}
+              </h4>
+              <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                <span>Feed: {article.feedId}</span>
+                <span>Last read: {formatDate(article.readAt)} at {formatTime(article.readAt)}</span>
+                {article.firstReadAt !== article.readAt && (
+                  <span className="text-blue-600">• Re-read</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <a 
+                  href={article.url}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Read Again
+                  <svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function SavedArticlesTab({ session }: { session: any }) {

@@ -53,6 +53,32 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
     setIsSaved(!!savedArticles[articleId]);
   }, [articleId, userAccountId]);
 
+  // Track article in reading history
+  useEffect(() => {
+    if (!userAccountId) return;
+
+    const addToHistory = () => {
+      const historyKey = `reading-history-${userAccountId}`;
+      const readingHistory = JSON.parse(localStorage.getItem(historyKey) || '{}');
+      
+      // Add/update article in history
+      readingHistory[articleId] = {
+        id: articleId,
+        title: articleTitle,
+        url: articleUrl,
+        feedId: feedId,
+        readAt: new Date().toISOString(),
+        // Update readAt if article is read again
+        firstReadAt: readingHistory[articleId]?.firstReadAt || new Date().toISOString()
+      };
+      
+      localStorage.setItem(historyKey, JSON.stringify(readingHistory));
+    };
+
+    // Add to history when component mounts (user opened the article)
+    addToHistory();
+  }, [articleId, articleTitle, articleUrl, feedId, userAccountId]);
+
   // Save/unsave article with user-specific storage
   const handleSave = () => {
     if (!userAccountId) {
