@@ -1,9 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import ProfileHeader from "@/components/profile-header";
 import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: async ({ location }) => {
@@ -246,13 +247,162 @@ function RouteComponent() {
             </TabsContent>
 
             <TabsContent value="saved" className="mt-6">
-              <div className="text-center py-12 text-gray-500">
-                <p>Saved content will be implemented here</p>
-              </div>
+              <SavedArticlesTab session={session} />
             </TabsContent>
           </Tabs>
         </div>
       </div>
+    </div>
+  );
+}
+
+interface SavedArticle {
+  id: string;
+  title: string;
+  url: string;
+  feedId: string;
+  savedAt: string;
+}
+
+function SavedArticlesTab({ session }: { session: any }) {
+  const [savedArticles, setSavedArticles] = useState<SavedArticle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userAccountId, setUserAccountId] = useState<string | null>(null);
+
+  // Get user account ID and load saved articles
+  useEffect(() => {
+    const loadSavedArticles = async () => {
+      try {
+        if (session?.user) {
+          // Try to get NEAR account ID
+          let accountId: string;
+          try {
+            const { data: nearProfile } = await authClient.near.getProfile();
+            accountId = (window as any)?.near?.accountId?.() || 
+                       nearProfile?.accountId ||
+                       session.user.email ||
+                       session.user.id;
+          } catch {
+            accountId = session.user.email || session.user.id;
+          }
+          
+          setUserAccountId(accountId);
+          
+          // Load saved articles from localStorage
+          const storageKey = `saved-articles-${accountId}`;
+          const savedData = localStorage.getItem(storageKey);
+          
+          if (savedData) {
+            const articlesObj = JSON.parse(savedData);
+            const articlesArray = Object.values(articlesObj) as SavedArticle[];
+            // Sort by saved date (newest first)
+            articlesArray.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
+            setSavedArticles(articlesArray);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load saved articles:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSavedArticles();
+  }, [session]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-4 border border-gray-200 rounded-lg">
+            <Skeleton className="h-6 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (savedArticles.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <div className="mb-4">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-1">No saved articles</h3>
+        <p className="text-gray-500 mb-4">Articles you save will appear here</p>
+        <Link to="/">
+          <Button variant="outline">
+            Explore Articles
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric'
+    });
+  };
+
+  const handleRemoveArticle = (articleId: string) => {
+    if (!userAccountId) return;
+    
+    const storageKey = `saved-articles-${userAccountId}`;
+    const savedData = localStorage.getItem(storageKey);
+    
+    if (savedData) {
+      const articlesObj = JSON.parse(savedData);
+      delete articlesObj[articleId];
+      localStorage.setItem(storageKey, JSON.stringify(articlesObj));
+      
+      // Update state
+      setSavedArticles(prev => prev.filter(article => article.id !== articleId));
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {savedArticles.map((article) => (
+        <div key={article.id} className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                {article.title}
+              </h3>
+              <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                <span>Feed: {article.feedId}</span>
+                <span>Saved: {formatDate(article.savedAt)}</span>
+              </div>
+              <div className="flex gap-2">
+                <a 
+                  href={article.url}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Read Article
+                  <svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+                <button
+                  onClick={() => handleRemoveArticle(article.id)}
+                  className="inline-flex items-center px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

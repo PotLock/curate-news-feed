@@ -2,37 +2,83 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 
 interface ReadingActionsProps {
   articleTitle: string;
   articleUrl: string;
   articleId: string;
+  feedId: string;
 }
 
-export function ReadingActions({ articleTitle, articleUrl, articleId }: ReadingActionsProps) {
+export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: ReadingActionsProps) {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
+  const [userAccountId, setUserAccountId] = useState<string | null>(null);
 
-  // Load saved state from localStorage
+  // Get user account ID
   useEffect(() => {
-    const savedArticles = JSON.parse(localStorage.getItem('saved-articles') || '[]');
-    setIsSaved(savedArticles.includes(articleId));
-  }, [articleId]);
+    const getUserAccount = async () => {
+      try {
+        const { data: session } = await authClient.getSession();
+        if (session?.user) {
+          // Try to get NEAR account ID
+          try {
+            const { data: nearProfile } = await authClient.near.getProfile();
+            // Use NEAR account ID if available, otherwise fallback to user email or ID
+            const accountId = (window as any)?.near?.accountId?.() || 
+                             nearProfile?.accountId ||
+                             session.user.email ||
+                             session.user.id;
+            setUserAccountId(accountId);
+          } catch {
+            // Fallback to user email or ID if NEAR profile not available
+            setUserAccountId(session.user.email || session.user.id);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to get user account:', error);
+      }
+    };
+    
+    getUserAccount();
+  }, []);
 
-  // Save/unsave article
+  // Load saved state from user-specific localStorage
+  useEffect(() => {
+    if (!userAccountId) return;
+    
+    const storageKey = `saved-articles-${userAccountId}`;
+    const savedArticles = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    setIsSaved(!!savedArticles[articleId]);
+  }, [articleId, userAccountId]);
+
+  // Save/unsave article with user-specific storage
   const handleSave = () => {
-    const savedArticles = JSON.parse(localStorage.getItem('saved-articles') || '[]');
+    if (!userAccountId) {
+      toast.error("Please log in to save articles");
+      return;
+    }
+
+    const storageKey = `saved-articles-${userAccountId}`;
+    const savedArticles = JSON.parse(localStorage.getItem(storageKey) || '{}');
     
     if (isSaved) {
       // Remove from saved
-      const updated = savedArticles.filter((id: string) => id !== articleId);
-      localStorage.setItem('saved-articles', JSON.stringify(updated));
+      delete savedArticles[articleId];
+      localStorage.setItem(storageKey, JSON.stringify(savedArticles));
       setIsSaved(false);
       toast.success("Article removed from saved");
     } else {
-      // Add to saved
-      const updated = [...savedArticles, articleId];
-      localStorage.setItem('saved-articles', JSON.stringify(updated));
+      // Add to saved with metadata
+      savedArticles[articleId] = {
+        id: articleId,
+        title: articleTitle,
+        url: articleUrl,
+        feedId: feedId,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(storageKey, JSON.stringify(savedArticles));
       setIsSaved(true);
       toast.success("Article saved for later");
     }

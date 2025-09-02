@@ -254,6 +254,7 @@ function ReadingPage() {
               articleTitle={item.title}
               articleUrl={window.location.href}
               articleId={item.id || item.title}
+              feedId={feedId}
             />
           </div>
         </div>
@@ -304,6 +305,7 @@ function ReadingPage() {
             articleTitle={item.title}
             articleUrl={window.location.href}
             articleId={item.id || item.title}
+            feedId={feedId}
           />
         </div>
 
