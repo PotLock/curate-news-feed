@@ -11,7 +11,7 @@ export function Author({ author, showEmail = false }: AuthorProps) {
       {author.avatar && (
         <img
           src={author.avatar}
-          alt={author.name || 'Author'}
+          alt={author.name || "Author"}
           className="w-6 h-6 rounded-full"
         />
       )}

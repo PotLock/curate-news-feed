@@ -24,7 +24,11 @@ export default function Header() {
             size="sm"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Search className="h-5 w-5" />
+            )}
           </Button>
         </div>
 
@@ -41,11 +45,11 @@ export default function Header() {
             />
           </div>
         </div>
-        
+
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setIsSubmitNewsOpen(true)}
             className="hidden sm:inline-flex"
@@ -74,9 +78,9 @@ export default function Header() {
 
             {/* Mobile Actions */}
             <div className="flex flex-col space-y-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="w-full"
                 onClick={() => {
                   setIsSubmitNewsOpen(true);
@@ -85,15 +89,14 @@ export default function Header() {
               >
                 Submit News
               </Button>
-              
             </div>
           </div>
         </div>
       )}
-      
+
       {/* Submit News Popup */}
-      <SubmitNewsPopup 
-        isOpen={isSubmitNewsOpen} 
+      <SubmitNewsPopup
+        isOpen={isSubmitNewsOpen}
         onOpenChange={setIsSubmitNewsOpen}
       />
     </header>

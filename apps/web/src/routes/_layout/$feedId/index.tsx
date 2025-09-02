@@ -107,10 +107,11 @@ function FeedPage() {
             Error Loading Feed
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
-            {error.message || "Failed to load the RSS feed. Please try again later."}
+            {error.message ||
+              "Failed to load the RSS feed. Please try again later."}
           </p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors touch-manipulation"
           >
             Try Again
@@ -124,18 +125,23 @@ function FeedPage() {
     return (
       <div className="mx-auto max-w-[1440px] p-4 sm:p-6">
         <div className="text-center space-y-4 py-12">
-          <h1 className="text-xl sm:text-2xl font-bold">No Feed Data Available</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">
+            No Feed Data Available
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
-            This feed appears to be empty or is still loading. Please try refreshing the page.
+            This feed appears to be empty or is still loading. Please try
+            refreshing the page.
           </p>
         </div>
       </div>
     );
   }
 
-  return <FeedGrid 
-    items={data.items} 
-    feedTitle={data.options.title} 
-    feedDescription={data.options.description} 
-  />;
+  return (
+    <FeedGrid
+      items={data.items}
+      feedTitle={data.options.title}
+      feedDescription={data.options.description}
+    />
+  );
 }

@@ -2,15 +2,14 @@ import type { FeedCategory as IFeedCategory } from "../../../../server/src/schem
 
 interface CategoryProps {
   category: IFeedCategory;
-  variant?: 'default' | 'small';
+  variant?: "default" | "small";
 }
 
-export function Category({ category, variant = 'default' }: CategoryProps) {
+export function Category({ category, variant = "default" }: CategoryProps) {
   const baseClasses = "font-medium rounded-full transition-colors";
-  const variantClasses = variant === 'small' 
-    ? "px-2 py-1 text-xs" 
-    : "px-3 py-1 text-sm";
-  
+  const variantClasses =
+    variant === "small" ? "px-2 py-1 text-xs" : "px-3 py-1 text-sm";
+
   const colorClasses = "bg-blue-100 text-blue-800 hover:bg-blue-200";
 
   const content = (
@@ -37,13 +36,22 @@ export function Category({ category, variant = 'default' }: CategoryProps) {
 
 interface CategoriesProps {
   categories: IFeedCategory[];
-  variant?: 'default' | 'small';
+  variant?: "default" | "small";
   maxDisplay?: number;
 }
 
-export function Categories({ categories, variant = 'default', maxDisplay }: CategoriesProps) {
-  const displayCategories = maxDisplay ? categories.slice(0, maxDisplay) : categories;
-  const remainingCount = maxDisplay && categories.length > maxDisplay ? categories.length - maxDisplay : 0;
+export function Categories({
+  categories,
+  variant = "default",
+  maxDisplay,
+}: CategoriesProps) {
+  const displayCategories = maxDisplay
+    ? categories.slice(0, maxDisplay)
+    : categories;
+  const remainingCount =
+    maxDisplay && categories.length > maxDisplay
+      ? categories.length - maxDisplay
+      : 0;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -51,7 +59,9 @@ export function Categories({ categories, variant = 'default', maxDisplay }: Cate
         <Category key={idx} category={category} variant={variant} />
       ))}
       {remainingCount > 0 && (
-        <span className={`${variant === 'small' ? 'px-2 py-1 text-xs' : 'px-3 py-1 text-sm'} font-medium rounded-full bg-gray-100 text-gray-600`}>
+        <span
+          className={`${variant === "small" ? "px-2 py-1 text-xs" : "px-3 py-1 text-sm"} font-medium rounded-full bg-gray-100 text-gray-600`}
+        >
           +{remainingCount} more
         </span>
       )}

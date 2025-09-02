@@ -77,7 +77,7 @@ export default function FeedSidebar() {
                       style={isActive ? { backgroundColor: "#e5e5e5" } : {}}
                       className={cn(
                         "py-2 px-3 font-geist text-sm text-neutral-900 min-h-[40px] rounded-md font-medium leading-6 hover:bg-[#e5e5e5] active:bg-[#e5e5e5] focus:bg-[#e5e5e5]",
-                        isActive && "bg-[#e5e5e5]"
+                        isActive && "bg-[#e5e5e5]",
                       )}
                     >
                       <Link to="/$feedId" params={{ feedId: feed.id! }}>

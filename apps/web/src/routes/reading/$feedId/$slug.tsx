@@ -35,7 +35,7 @@ export const Route = createFileRoute("/reading/$feedId/$slug")({
       const feedData = await context.queryClient.ensureQueryData(
         context.trpc.getFeed.queryOptions({
           feedId: params.feedId,
-        })
+        }),
       );
 
       // Find the item by slug from the feed items
@@ -49,7 +49,7 @@ export const Route = createFileRoute("/reading/$feedId/$slug")({
         context.trpc.getFeedItem.queryOptions({
           feedId: params.feedId,
           itemId: item.id, // Use the ID from the feed items
-        })
+        }),
       );
 
       return { itemData, feedData, currentItem: item };
@@ -119,7 +119,7 @@ function ReadingPage() {
       return { prevItem: null, nextItem: null };
 
     const currentIndex = feedItems.findIndex(
-      (feedItem) => feedItem.id === currentItem.id
+      (feedItem) => feedItem.id === currentItem.id,
     );
     if (currentIndex === -1) return { prevItem: null, nextItem: null };
 
@@ -138,7 +138,7 @@ function ReadingPage() {
       return { currentIndex: 0, totalCount: 0 };
 
     const currentIndex = feedItems.findIndex(
-      (feedItem) => feedItem.id === currentItem.id
+      (feedItem) => feedItem.id === currentItem.id,
     );
     return {
       currentIndex: currentIndex >= 0 ? currentIndex + 1 : 1,
@@ -250,7 +250,7 @@ function ReadingPage() {
 
           {/* Mobile Actions */}
           <div className="flex justify-center">
-            <ReadingActions 
+            <ReadingActions
               articleTitle={item.title}
               articleUrl={window.location.href}
               articleId={item.id || item.title}
@@ -301,7 +301,7 @@ function ReadingPage() {
             nextItem={nextItem}
             generateSlug={generateSlug}
           />
-          <ReadingActions 
+          <ReadingActions
             articleTitle={item.title}
             articleUrl={window.location.href}
             articleId={item.id || item.title}

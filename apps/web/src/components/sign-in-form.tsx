@@ -38,7 +38,7 @@ export default function SignInForm() {
                 : error.message || "Failed to connect wallet";
             toast.error(errorMessage);
           },
-        }
+        },
       );
     } catch (error) {
       setIsConnectingWallet(false);
@@ -72,10 +72,10 @@ export default function SignInForm() {
             }
 
             toast.error(
-              error instanceof Error ? error.message : "Authentication failed"
+              error instanceof Error ? error.message : "Authentication failed",
             );
           },
-        }
+        },
       );
     } catch (error) {
       setIsSigningInWithNear(false);

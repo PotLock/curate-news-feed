@@ -74,10 +74,14 @@ export function NearProfile({
         </div>
       );
     }
-    
+
     return (
-      <div className={`flex items-center justify-start space-x-3 w-24 ${className}`}>
-        {showAvatar && <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />}
+      <div
+        className={`flex items-center justify-start space-x-3 w-24 ${className}`}
+      >
+        {showAvatar && (
+          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+        )}
         {showName && <Skeleton className="h-4 w-16 flex-shrink-0" />}
       </div>
     );
@@ -188,7 +192,9 @@ export function NearProfile({
 
   // Badge variant (default)
   return (
-    <div className={`flex items-center justify-start space-x-2 w-24 ${className}`}>
+    <div
+      className={`flex items-center justify-start space-x-2 w-24 ${className}`}
+    >
       {showAvatar && (
         <div className="h-6 w-6 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
           {avatarUrl ? (
@@ -209,7 +215,9 @@ export function NearProfile({
       )}
       {showName && (
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-sm font-medium truncate text-left">{displayName}</span>
+          <span className="text-sm font-medium truncate text-left">
+            {displayName}
+          </span>
         </div>
       )}
     </div>

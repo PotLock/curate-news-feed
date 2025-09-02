@@ -225,9 +225,7 @@ function ItemPage() {
           {/* Copyright */}
           {item.copyright && (
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
-                {item.copyright}
-              </p>
+              <p className="text-sm text-gray-500">{item.copyright}</p>
             </div>
           )}
         </div>

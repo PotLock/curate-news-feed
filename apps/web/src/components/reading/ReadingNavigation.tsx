@@ -16,7 +16,11 @@ interface ReadingNavigationProps {
   nextItem?: { id?: string; title: string } | null;
 }
 
-export function ReadingNavigation({ feedId, prevItem, nextItem }: ReadingNavigationProps) {
+export function ReadingNavigation({
+  feedId,
+  prevItem,
+  nextItem,
+}: ReadingNavigationProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0">
       <div className="flex items-center gap-4">

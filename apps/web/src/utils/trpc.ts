@@ -1,6 +1,9 @@
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
-import { createTRPCContext, createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
+import {
+  createTRPCContext,
+  createTRPCOptionsProxy,
+} from "@trpc/tanstack-react-query";
 import { toast } from "sonner";
 import type { AppRouter } from "../../../server/src/routers";
 
@@ -60,8 +63,9 @@ export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error: any) => {
       const readableMessage = getReadableErrorMessage(error);
-      const isNetworkError = error.message === "Failed to fetch" || error.message.includes("fetch");
-      
+      const isNetworkError =
+        error.message === "Failed to fetch" || error.message.includes("fetch");
+
       toast.error(readableMessage, {
         action: isNetworkError
           ? {
@@ -80,29 +84,31 @@ export const queryClient = new QueryClient({
       });
     },
   }),
-  defaultOptions: { 
-    queries: { 
+  defaultOptions: {
+    queries: {
       staleTime: 60 * 1000,
       retry: (failureCount, error: any) => {
         // Don't retry if offline
         if (!isOnline()) {
           return false;
         }
-        
+
         // Don't retry certain error types
-        if (error.data?.code === "UNAUTHORIZED" || 
-            error.data?.code === "FORBIDDEN" || 
-            error.data?.code === "NOT_FOUND") {
+        if (
+          error.data?.code === "UNAUTHORIZED" ||
+          error.data?.code === "FORBIDDEN" ||
+          error.data?.code === "NOT_FOUND"
+        ) {
           return false;
         }
-        
+
         // Retry up to 3 times for network errors
         return failureCount < 3;
       },
       retryDelay: (attemptIndex) => {
         return Math.min(1000 * Math.pow(2, attemptIndex), 10000);
       },
-    } 
+    },
   },
 });
 
@@ -148,4 +154,3 @@ if (typeof window !== "undefined") {
     });
   });
 }
-

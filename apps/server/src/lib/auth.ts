@@ -1,4 +1,3 @@
-
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { siwn } from "better-near-auth";
@@ -15,19 +14,19 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
   plugins: [
     siwn({
-      recipient: "curate-news-feed.near"
+      recipient: "curate-news-feed.near",
     }),
   ],
   session: {
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60 // 5 minutes cache - reduces DB hits
-    }
+      maxAge: 5 * 60, // 5 minutes cache - reduces DB hits
+    },
   },
   advanced: {
     defaultCookieAttributes: {
       sameSite: "none", // need this to allow many clients
-      secure: true
-    }
-  }
+      secure: true,
+    },
+  },
 });

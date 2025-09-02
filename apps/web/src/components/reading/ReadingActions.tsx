@@ -11,7 +11,12 @@ interface ReadingActionsProps {
   feedId: string;
 }
 
-export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: ReadingActionsProps) {
+export function ReadingActions({
+  articleTitle,
+  articleUrl,
+  articleId,
+  feedId,
+}: ReadingActionsProps) {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
   const [isLiked, setIsLiked] = useState<boolean | null>(null); // null = no preference, true = liked, false = disliked
@@ -27,10 +32,11 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
           try {
             const { data: nearProfile } = await authClient.near.getProfile();
             // Use NEAR account ID if available, otherwise fallback to user email or ID
-            const accountId = (window as any)?.near?.accountId?.() || 
-                             nearProfile?.accountId ||
-                             session.user.email ||
-                             session.user.id;
+            const accountId =
+              (window as any)?.near?.accountId?.() ||
+              nearProfile?.accountId ||
+              session.user.email ||
+              session.user.id;
             setUserAccountId(accountId);
           } catch {
             // Fallback to user email or ID if NEAR profile not available
@@ -38,28 +44,30 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
           }
         }
       } catch (error) {
-        console.warn('Failed to get user account:', error);
+        console.warn("Failed to get user account:", error);
       }
     };
-    
+
     getUserAccount();
   }, []);
 
   // Load saved state from user-specific localStorage
   useEffect(() => {
     if (!userAccountId) return;
-    
+
     const storageKey = `saved-articles-${userAccountId}`;
-    const savedArticles = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    const savedArticles = JSON.parse(localStorage.getItem(storageKey) || "{}");
     setIsSaved(!!savedArticles[articleId]);
   }, [articleId, userAccountId]);
 
   // Load like/dislike preference from user-specific localStorage
   useEffect(() => {
     if (!userAccountId) return;
-    
+
     const preferencesKey = `article-preferences-${userAccountId}`;
-    const preferences = JSON.parse(localStorage.getItem(preferencesKey) || '{}');
+    const preferences = JSON.parse(
+      localStorage.getItem(preferencesKey) || "{}",
+    );
     const preference = preferences[articleId];
     setIsLiked(preference?.liked ?? null); // null if no preference set
   }, [articleId, userAccountId]);
@@ -70,8 +78,10 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
 
     const addToHistory = () => {
       const historyKey = `reading-history-${userAccountId}`;
-      const readingHistory = JSON.parse(localStorage.getItem(historyKey) || '{}');
-      
+      const readingHistory = JSON.parse(
+        localStorage.getItem(historyKey) || "{}",
+      );
+
       // Add/update article in history
       readingHistory[articleId] = {
         id: articleId,
@@ -80,9 +90,10 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         feedId: feedId,
         readAt: new Date().toISOString(),
         // Update readAt if article is read again
-        firstReadAt: readingHistory[articleId]?.firstReadAt || new Date().toISOString()
+        firstReadAt:
+          readingHistory[articleId]?.firstReadAt || new Date().toISOString(),
       };
-      
+
       localStorage.setItem(historyKey, JSON.stringify(readingHistory));
     };
 
@@ -98,8 +109,8 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
     }
 
     const storageKey = `saved-articles-${userAccountId}`;
-    const savedArticles = JSON.parse(localStorage.getItem(storageKey) || '{}');
-    
+    const savedArticles = JSON.parse(localStorage.getItem(storageKey) || "{}");
+
     if (isSaved) {
       // Remove from saved
       delete savedArticles[articleId];
@@ -113,7 +124,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         title: articleTitle,
         url: articleUrl,
         feedId: feedId,
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
       };
       localStorage.setItem(storageKey, JSON.stringify(savedArticles));
       setIsSaved(true);
@@ -129,8 +140,10 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
     }
 
     const preferencesKey = `article-preferences-${userAccountId}`;
-    const preferences = JSON.parse(localStorage.getItem(preferencesKey) || '{}');
-    
+    const preferences = JSON.parse(
+      localStorage.getItem(preferencesKey) || "{}",
+    );
+
     if (isLiked === liked) {
       // User is clicking the same preference - remove it (toggle off)
       delete preferences[articleId];
@@ -144,12 +157,12 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         url: articleUrl,
         feedId: feedId,
         liked: liked,
-        preferenceAt: new Date().toISOString()
+        preferenceAt: new Date().toISOString(),
       };
       setIsLiked(liked);
       toast.success(liked ? "Article liked!" : "Article disliked");
     }
-    
+
     localStorage.setItem(preferencesKey, JSON.stringify(preferences));
   };
 
@@ -160,7 +173,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         await navigator.share({
           title: articleTitle,
           text: `Check out this article: ${articleTitle}`,
-          url: articleUrl
+          url: articleUrl,
         });
       } else {
         // Fallback: copy to clipboard
@@ -168,7 +181,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         toast.success("Article link copied to clipboard!");
       }
     } catch (err) {
-      console.error('Share failed:', err);
+      console.error("Share failed:", err);
       toast.error("Failed to share article");
     }
   };
@@ -184,7 +197,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         onClick={handleSave}
         variant="outline"
         className={`border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation transition-colors ${
-          isSaved ? 'bg-blue-50 border-blue-200' : 'bg-[#FFFFFFF2]'
+          isSaved ? "bg-blue-50 border-blue-200" : "bg-[#FFFFFFF2]"
         }`}
         title={isSaved ? "Remove from saved" : "Save article"}
       >
@@ -214,7 +227,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         onClick={() => handleLikeDislike(true)}
         variant="outline"
         className={`border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation transition-colors ${
-          isLiked === true ? 'bg-green-50 border-green-200' : 'bg-[#FFFFFFF2]'
+          isLiked === true ? "bg-green-50 border-green-200" : "bg-[#FFFFFFF2]"
         }`}
         title={isLiked === true ? "Remove like" : "Like article"}
       >
@@ -228,7 +241,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
           stroke={isLiked === true ? "#16A34A" : "#1C274D"}
           strokeWidth="2"
         >
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
         </svg>
       </Button>
 
@@ -237,7 +250,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
         onClick={() => handleLikeDislike(false)}
         variant="outline"
         className={`border-[0.66px] p-[8px] lg:p-[10px] border-[#e5e5e5] rounded-[8px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)] h-auto touch-manipulation transition-colors ${
-          isLiked === false ? 'bg-red-50 border-red-200' : 'bg-[#FFFFFFF2]'
+          isLiked === false ? "bg-red-50 border-red-200" : "bg-[#FFFFFFF2]"
         }`}
         title={isLiked === false ? "Remove dislike" : "Dislike article"}
       >
@@ -251,12 +264,12 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
           stroke={isLiked === false ? "#DC2626" : "#1C274D"}
           strokeWidth="2"
         >
-          <path d="M18 6L6 18M6 6l12 12"/>
+          <path d="M18 6L6 18M6 6l12 12" />
         </svg>
       </Button>
-      
+
       {/* Community Notes - HIDDEN (requires backend) */}
-      
+
       {/* Home Button */}
       <Button
         onClick={handleHome}
@@ -292,7 +305,7 @@ export function ReadingActions({ articleTitle, articleUrl, articleId, feedId }: 
           </defs>
         </svg>
       </Button>
-      
+
       {/* Share Button */}
       <Button
         onClick={handleShare}

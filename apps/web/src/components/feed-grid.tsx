@@ -57,8 +57,8 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
       items
         .flatMap((item) => item.category || [])
         .map((cat) => cat.name)
-        .filter(Boolean)
-    )
+        .filter(Boolean),
+    ),
   ).sort();
 
   // Filter items by selected category
@@ -66,7 +66,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
     selectedCategory === "trending"
       ? filteredItems
       : filteredItems.filter((item) =>
-          item.category?.some((cat) => cat.name === selectedCategory)
+          item.category?.some((cat) => cat.name === selectedCategory),
         );
 
   const displayItems = categoryFilteredItems;
@@ -194,7 +194,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                       const maxVisibleBadges = 2;
                       const visibleCategories = item.category!.slice(
                         0,
-                        maxVisibleBadges
+                        maxVisibleBadges,
                       );
                       const hiddenCount =
                         item.category!.length - maxVisibleBadges;

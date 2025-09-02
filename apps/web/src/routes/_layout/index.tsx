@@ -6,18 +6,18 @@ export const Route = createFileRoute("/_layout/")({
   loader: async ({ context }) => {
     const queryOptions = context.trpc.getFeeds.queryOptions();
     const feedsData = await context.queryClient.ensureQueryData(queryOptions);
-    
+
     // Redirect to the first available feed
     if (feedsData?.items && feedsData.items.length > 0) {
       const firstFeedId = feedsData.items[0].id;
       if (firstFeedId) {
         throw redirect({
           to: "/$feedId",
-          params: { feedId: firstFeedId }
+          params: { feedId: firstFeedId },
         });
       }
     }
-    
+
     return feedsData;
   },
 });
@@ -57,7 +57,9 @@ function HomeComponent() {
     <div className="container mx-auto p-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-4">Welcome to Curate News</h1>
-        <p className="text-muted-foreground">Select a feed from the sidebar to get started.</p>
+        <p className="text-muted-foreground">
+          Select a feed from the sidebar to get started.
+        </p>
       </div>
     </div>
   );

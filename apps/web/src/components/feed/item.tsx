@@ -11,29 +11,30 @@ interface ItemProps {
 
 export function Item({ data, index }: ItemProps) {
   const params = useParams({ from: "/_layout/$feedId/" });
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(date);
   };
 
   const getImageUrl = (image: string | { url: string } | undefined) => {
     if (!image) return null;
-    return typeof image === 'string' ? image : image.url;
+    return typeof image === "string" ? image : image.url;
   };
 
-  const normalizeId = (str: string) => 
-    str.toLowerCase()
-       .replace(/[^a-z0-9\s-]/g, '')
-       .replace(/\s+/g, '-')
-       .replace(/-+/g, '-')
-       .replace(/^-|-$/g, '');
+  const normalizeId = (str: string) =>
+    str
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
 
   return (
     <article className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
@@ -64,50 +65,54 @@ export function Item({ data, index }: ItemProps) {
 
         {/* Author and Date */}
         <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-          {data.author && data.author[0] && (
-            <Author author={data.author[0]} />
-          )}
-          <time dateTime={data.date}>
-            {formatDate(data.date)}
-          </time>
+          {data.author && data.author[0] && <Author author={data.author[0]} />}
+          <time dateTime={data.date}>{formatDate(data.date)}</time>
         </div>
 
         {/* Categories */}
         {data.category && data.category.length > 0 && (
           <div className="mb-3">
-            <Categories categories={data.category} variant="small" maxDisplay={3} />
+            <Categories
+              categories={data.category}
+              variant="small"
+              maxDisplay={3}
+            />
           </div>
         )}
 
         {/* Description */}
         {data.description && (
-          <p className="text-gray-700 mb-4 line-clamp-3">
-            {data.description}
-          </p>
+          <p className="text-gray-700 mb-4 line-clamp-3">{data.description}</p>
         )}
 
         {/* Media Controls */}
         <div className="space-y-3">
           {/* Audio */}
           {data.audio && (
-            <Enclosure 
-              enclosure={typeof data.audio === 'string' ? { url: data.audio } : data.audio} 
-              type="audio" 
+            <Enclosure
+              enclosure={
+                typeof data.audio === "string"
+                  ? { url: data.audio }
+                  : data.audio
+              }
+              type="audio"
             />
           )}
 
           {/* Video */}
           {data.video && (
-            <Enclosure 
-              enclosure={typeof data.video === 'string' ? { url: data.video } : data.video} 
-              type="video" 
+            <Enclosure
+              enclosure={
+                typeof data.video === "string"
+                  ? { url: data.video }
+                  : data.video
+              }
+              type="video"
             />
           )}
 
           {/* General Enclosure */}
-          {data.enclosure && (
-            <Enclosure enclosure={data.enclosure} />
-          )}
+          {data.enclosure && <Enclosure enclosure={data.enclosure} />}
         </div>
 
         {/* Footer */}
@@ -115,15 +120,25 @@ export function Item({ data, index }: ItemProps) {
           <div className="flex items-center gap-3">
             <Link
               to="/$feedId/$itemId"
-              params={{ 
+              params={{
                 feedId: params.feedId,
-                itemId: normalizeId(data.title)
+                itemId: normalizeId(data.title),
               }}
               className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
             >
               View Details
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </Link>
             <a
@@ -133,12 +148,22 @@ export function Item({ data, index }: ItemProps) {
               className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
             >
               External Link
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
               </svg>
             </a>
           </div>
-          
+
           {data.published && (
             <span className="text-xs text-gray-500">
               Published: {formatDate(data.published)}

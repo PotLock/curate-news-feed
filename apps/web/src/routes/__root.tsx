@@ -24,7 +24,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       },
       {
         name: "description",
-        content: "Curate news directly on socials and turn feeds into regular content.",
+        content:
+          "Curate news directly on socials and turn feeds into regular content.",
       },
       {
         name: "theme-color",
@@ -39,8 +40,9 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         content: "CURATE.FUN - Curate News on Socials",
       },
       {
-        property: "og:description", 
-        content: "Curate news directly on socials and turn feeds into regular content.",
+        property: "og:description",
+        content:
+          "Curate news directly on socials and turn feeds into regular content.",
       },
       {
         property: "og:type",
@@ -64,7 +66,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       },
       {
         name: "twitter:description",
-        content: "Curate news directly on socials and turn feeds into regular content.",
+        content:
+          "Curate news directly on socials and turn feeds into regular content.",
       },
       {
         name: "twitter:image",
@@ -78,7 +81,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       },
       {
         rel: "icon",
-        type: "image/png", 
+        type: "image/png",
         sizes: "96x96",
         href: "/favicon-96x96.png",
       },
@@ -120,10 +123,10 @@ function RootComponent() {
   return (
     <>
       <HeadContent />
-        <div className="grid grid-rows-[auto_1fr] h-svh touch-manipulation">
-          {isFetching ? <Loader /> : <Outlet />}
-        </div>
-        <Toaster richColors />
+      <div className="grid grid-rows-[auto_1fr] h-svh touch-manipulation">
+        {isFetching ? <Loader /> : <Outlet />}
+      </div>
+      <Toaster richColors />
       <TanStackRouterDevtools position="bottom-left" />
     </>
   );

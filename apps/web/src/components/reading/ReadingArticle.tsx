@@ -49,21 +49,22 @@ export function ReadingArticle({
   generateSlug,
 }: ReadingArticleProps) {
   const navigate = useNavigate();
-  const { showImages, autoAdvance, readingSpeed, textToSpeech } = useReadingSettings();
+  const { showImages, autoAdvance, readingSpeed, textToSpeech } =
+    useReadingSettings();
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
-    null
+    null,
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [dragDirection, setDragDirection] = useState<"left" | "right" | null>(
-    null
+    null,
   );
-  
+
   // Auto-advance state
   const [timeRemaining, setTimeRemaining] = useState(readingSpeed);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Text-to-Speech state
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSPaused, setIsTTSPaused] = useState(false);
@@ -72,17 +73,17 @@ export function ReadingArticle({
   // Auto-advance functionality
   const startAutoAdvance = () => {
     if (!autoAdvance || !nextItem) return;
-    
+
     // Clear any existing timers
     if (timerRef.current) clearTimeout(timerRef.current);
     if (intervalRef.current) clearInterval(intervalRef.current);
-    
+
     setTimeRemaining(readingSpeed);
     setIsPaused(false);
-    
+
     // Update countdown every second
     intervalRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
+      setTimeRemaining((prev) => {
         if (prev <= 1) {
           // Navigate to next article
           if (intervalRef.current) clearInterval(intervalRef.current);
@@ -108,12 +109,12 @@ export function ReadingArticle({
 
   const resumeAutoAdvance = () => {
     if (!autoAdvance || !nextItem || timeRemaining <= 0) return;
-    
+
     setIsPaused(false);
-    
+
     // Resume with current timeRemaining value
     intervalRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
+      setTimeRemaining((prev) => {
         if (prev <= 1) {
           // Navigate to next article
           if (intervalRef.current) clearInterval(intervalRef.current);
@@ -133,7 +134,7 @@ export function ReadingArticle({
     if (autoAdvance && nextItem && !isTransitioning) {
       startAutoAdvance();
     }
-    
+
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -153,7 +154,7 @@ export function ReadingArticle({
   const extractTextContent = (articleData: ArticleItem) => {
     // Start with title
     let textToRead = articleData.title + ". ";
-    
+
     // Add content if available (parsed and cleaned)
     const contentParagraphs = parseContent(articleData.content || "");
     if (contentParagraphs.length > 0) {
@@ -166,7 +167,7 @@ export function ReadingArticle({
         .trim();
       textToRead += cleanDescription;
     }
-    
+
     return textToRead;
   };
 
@@ -178,15 +179,15 @@ export function ReadingArticle({
 
     // Stop any existing speech
     window.speechSynthesis.cancel();
-    
+
     const textToRead = extractTextContent(item);
     const utterance = new SpeechSynthesisUtterance(textToRead);
-    
+
     // Configure speech settings
     utterance.rate = 0.9; // Slightly slower for better comprehension
     utterance.pitch = 1;
     utterance.volume = 1;
-    
+
     // Set voice if selectedVoice is configured
     const voices = window.speechSynthesis.getVoices();
     if (voices.length > 0) {
@@ -255,35 +256,38 @@ export function ReadingArticle({
         let accountId: string;
         try {
           const { data: nearProfile } = await authClient.near.getProfile();
-          accountId = (window as any)?.near?.accountId?.() || 
-                     session.user.email ||
-                     session.user.id;
+          accountId =
+            (window as any)?.near?.accountId?.() ||
+            session.user.email ||
+            session.user.id;
         } catch {
           accountId = session.user.email || session.user.id;
         }
 
         const preferencesKey = `article-preferences-${accountId}`;
-        const preferences = JSON.parse(localStorage.getItem(preferencesKey) || '{}');
-        
+        const preferences = JSON.parse(
+          localStorage.getItem(preferencesKey) || "{}",
+        );
+
         preferences[item.id || item.title] = {
           id: item.id || item.title,
           title: item.title,
           url: item.link,
           feedId: feedId,
           liked: liked,
-          preferenceAt: new Date().toISOString()
+          preferenceAt: new Date().toISOString(),
         };
-        
+
         localStorage.setItem(preferencesKey, JSON.stringify(preferences));
       }
     } catch (error) {
-      console.warn('Failed to save preference:', error);
+      console.warn("Failed to save preference:", error);
     }
   };
 
   const handleDrag = (
     _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    info: PanInfo,
   ) => {
     const offset = info.offset.x;
     // Update drag direction based on swipe direction
@@ -295,7 +299,7 @@ export function ReadingArticle({
 
   const handleDragEnd = (
     _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    info: PanInfo,
   ) => {
     const threshold = 100;
     const velocity = info.velocity.x;
@@ -308,11 +312,11 @@ export function ReadingArticle({
     if (Math.abs(velocity) > 500 || Math.abs(offset) > threshold) {
       // Pause auto-advance when user manually navigates
       if (autoAdvance) pauseAutoAdvance();
-      
+
       // Save like/dislike preference based on swipe direction
       const liked = offset > 0; // Right swipe = like, Left swipe = dislike
       saveLikeDislikePreference(liked);
-      
+
       // Both left and right swipes go to next article (if available)
       if (nextItem) {
         setIsTransitioning(true);
@@ -664,7 +668,7 @@ export function ReadingArticle({
             }}
           >
             <ArticleCard articleData={item} />
-            
+
             {/* Swipe hints - Green for like (right), Red for dislike (left) */}
             {dragDirection && (
               <motion.div
@@ -672,14 +676,18 @@ export function ReadingArticle({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className={`absolute inset-0 rounded-2xl flex items-center justify-center pointer-events-none z-20 ${
-                  dragDirection === "right" 
-                    ? "bg-green-500/20 border-2 border-green-500/50" 
+                  dragDirection === "right"
+                    ? "bg-green-500/20 border-2 border-green-500/50"
                     : "bg-red-500/20 border-2 border-red-500/50"
                 }`}
               >
-                <div className={`flex flex-col items-center gap-2 ${
-                  dragDirection === "right" ? "text-green-600" : "text-red-600"
-                }`}>
+                <div
+                  className={`flex flex-col items-center gap-2 ${
+                    dragDirection === "right"
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
                   {dragDirection === "right" ? (
                     <>
                       {/* Like/Heart icon */}
@@ -691,9 +699,11 @@ export function ReadingArticle({
                         fill="currentColor"
                         className="drop-shadow-lg"
                       >
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
-                      <span className="text-lg font-bold drop-shadow-lg">LIKE</span>
+                      <span className="text-lg font-bold drop-shadow-lg">
+                        LIKE
+                      </span>
                     </>
                   ) : (
                     <>
@@ -706,15 +716,17 @@ export function ReadingArticle({
                         fill="currentColor"
                         className="drop-shadow-lg"
                       >
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                       </svg>
-                      <span className="text-lg font-bold drop-shadow-lg">PASS</span>
+                      <span className="text-lg font-bold drop-shadow-lg">
+                        PASS
+                      </span>
                     </>
                   )}
                 </div>
               </motion.div>
             )}
-            
+
             {/* Auto-advance countdown indicator */}
             {autoAdvance && nextItem && timeRemaining > 0 && (
               <motion.div
@@ -725,8 +737,20 @@ export function ReadingArticle({
                 {isPaused ? (
                   <>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
-                      <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+                      <rect
+                        x="6"
+                        y="4"
+                        width="4"
+                        height="16"
+                        fill="currentColor"
+                      />
+                      <rect
+                        x="14"
+                        y="4"
+                        width="4"
+                        height="16"
+                        fill="currentColor"
+                      />
                     </svg>
                     Paused
                   </>
@@ -808,7 +832,7 @@ export function ReadingArticle({
 
             {/* Text-to-Speech Play/Pause/Stop Button - Only show when TTS is enabled */}
             {textToSpeech && (
-              <Button 
+              <Button
                 onClick={() => {
                   if (!isPlaying) {
                     startTextToSpeech();
@@ -819,61 +843,63 @@ export function ReadingArticle({
                   }
                 }}
                 className={`flex p-[10px] sm:p-[14px] items-center gap-[10px] rounded-full border-[0.667px] border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] touch-manipulation transition-colors ${
-                  isPlaying ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-gray-50'
+                  isPlaying
+                    ? "bg-blue-50 hover:bg-blue-100"
+                    : "bg-white hover:bg-gray-50"
                 }`}
               >
-              {!isPlaying ? (
-                // Play icon
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 21 21"
-                  fill="none"
-                  className="sm:w-[21px] sm:h-[21px]"
-                >
-                  <path
-                    d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
-                    stroke={isPlaying ? "#2563EB" : "#1C274C"}
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              ) : isTTSPaused ? (
-                // Play icon (to resume)
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 21 21"
-                  fill="none"
-                  className="sm:w-[21px] sm:h-[21px]"
-                >
-                  <path
-                    d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
-                    stroke="#2563EB"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              ) : (
-                // Pause icon
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="sm:w-[21px] sm:h-[21px]"
-                >
-                  <rect x="6" y="4" width="4" height="16" fill="#2563EB"/>
-                  <rect x="14" y="4" width="4" height="16" fill="#2563EB"/>
-                </svg>
-              )}
-            </Button>
+                {!isPlaying ? (
+                  // Play icon
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 21 21"
+                    fill="none"
+                    className="sm:w-[21px] sm:h-[21px]"
+                  >
+                    <path
+                      d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
+                      stroke={isPlaying ? "#2563EB" : "#1C274C"}
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                ) : isTTSPaused ? (
+                  // Play icon (to resume)
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 21 21"
+                    fill="none"
+                    className="sm:w-[21px] sm:h-[21px]"
+                  >
+                    <path
+                      d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
+                      stroke="#2563EB"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                ) : (
+                  // Pause icon
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="sm:w-[21px] sm:h-[21px]"
+                  >
+                    <rect x="6" y="4" width="4" height="16" fill="#2563EB" />
+                    <rect x="14" y="4" width="4" height="16" fill="#2563EB" />
+                  </svg>
+                )}
+              </Button>
             )}
-            
+
             {/* Stop Button - Only show when TTS enabled and playing */}
             {textToSpeech && isPlaying && (
-              <Button 
+              <Button
                 onClick={stopTextToSpeech}
                 variant="ghost"
                 size="sm"
@@ -887,7 +913,7 @@ export function ReadingArticle({
                   viewBox="0 0 24 24"
                   fill="none"
                 >
-                  <rect x="6" y="6" width="12" height="12" fill="#DC2626"/>
+                  <rect x="6" y="6" width="12" height="12" fill="#DC2626" />
                 </svg>
               </Button>
             )}

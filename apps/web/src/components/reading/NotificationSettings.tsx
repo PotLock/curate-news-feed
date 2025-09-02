@@ -45,10 +45,7 @@ export function NotificationSettings({
             Receive Weekly Reading Summary
           </p>
         </div>
-        <Switch
-          checked={weeklyDigest}
-          onCheckedChange={onWeeklyDigestChange}
-        />
+        <Switch checked={weeklyDigest} onCheckedChange={onWeeklyDigestChange} />
       </div>
     </div>
   );

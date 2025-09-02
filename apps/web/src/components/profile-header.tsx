@@ -13,18 +13,18 @@ export default function ProfileHeader() {
       <div className="flex h-[69px] items-center justify-between px-4 sm:px-8 py-[10px]">
         {/* Logo - Left Side */}
         <div className="flex items-center">
-          <Link 
+          <Link
             to="/"
             className="hover:opacity-80 transition-opacity cursor-pointer"
           >
             <img src={logoImg} alt="Curate.fun Logo" className="h-8 w-auto" />
           </Link>
         </div>
-        
+
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setIsSubmitNewsOpen(true)}
             className="hidden sm:inline-flex"
@@ -34,10 +34,10 @@ export default function ProfileHeader() {
           <UserMenu />
         </div>
       </div>
-      
+
       {/* Submit News Popup */}
-      <SubmitNewsPopup 
-        isOpen={isSubmitNewsOpen} 
+      <SubmitNewsPopup
+        isOpen={isSubmitNewsOpen}
         onOpenChange={setIsSubmitNewsOpen}
       />
     </header>

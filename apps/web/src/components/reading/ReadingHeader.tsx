@@ -32,7 +32,7 @@ export function ReadingHeader({
     showImages,
     analytics,
     personalizedRecommendations,
-    updateSettings
+    updateSettings,
   } = useReadingSettings();
 
   return (
@@ -56,7 +56,7 @@ export function ReadingHeader({
           <Divider />
           <AuthorSection authorName={authorName} />
         </div>
-        
+
         {/* Desktop Layout - Full */}
         <div className="hidden sm:flex items-center px-[10px] py-[6px] gap-[10px]">
           <CategoriesSection count={categoryCount} />
@@ -69,15 +69,25 @@ export function ReadingHeader({
             isOpen={isSettingsOpen}
             onOpenChange={setIsSettingsOpen}
             readingSpeed={[readingSpeed]}
-            onReadingSpeedChange={(value) => updateSettings({ readingSpeed: value[0] })}
+            onReadingSpeedChange={(value) =>
+              updateSettings({ readingSpeed: value[0] })
+            }
             autoAdvance={autoAdvance}
-            onAutoAdvanceChange={(value) => updateSettings({ autoAdvance: value })}
+            onAutoAdvanceChange={(value) =>
+              updateSettings({ autoAdvance: value })
+            }
             textToSpeech={textToSpeech}
-            onTextToSpeechChange={(value) => updateSettings({ textToSpeech: value })}
+            onTextToSpeechChange={(value) =>
+              updateSettings({ textToSpeech: value })
+            }
             voiceSettings={!!selectedVoice}
-            onVoiceSettingsChange={(value) => updateSettings({ selectedVoice: value ? "default" : "" })}
+            onVoiceSettingsChange={(value) =>
+              updateSettings({ selectedVoice: value ? "default" : "" })
+            }
             showImages={showImages}
-            onShowImagesChange={(value) => updateSettings({ showImages: value })}
+            onShowImagesChange={(value) =>
+              updateSettings({ showImages: value })
+            }
             readingReminders={false}
             onReadingRemindersChange={() => {}}
             weeklyDigest={false}
@@ -85,7 +95,9 @@ export function ReadingHeader({
             analytics={analytics}
             onAnalyticsChange={(value) => updateSettings({ analytics: value })}
             personalizedRecommendations={personalizedRecommendations}
-            onPersonalizedRecommendationsChange={(value) => updateSettings({ personalizedRecommendations: value })}
+            onPersonalizedRecommendationsChange={(value) =>
+              updateSettings({ personalizedRecommendations: value })
+            }
           />
         </div>
       </div>
@@ -98,13 +110,21 @@ export function ReadingHeader({
           isOpen={isSettingsOpen}
           onOpenChange={setIsSettingsOpen}
           readingSpeed={[readingSpeed]}
-          onReadingSpeedChange={(value) => updateSettings({ readingSpeed: value[0] })}
+          onReadingSpeedChange={(value) =>
+            updateSettings({ readingSpeed: value[0] })
+          }
           autoAdvance={autoAdvance}
-          onAutoAdvanceChange={(value) => updateSettings({ autoAdvance: value })}
+          onAutoAdvanceChange={(value) =>
+            updateSettings({ autoAdvance: value })
+          }
           textToSpeech={textToSpeech}
-          onTextToSpeechChange={(value) => updateSettings({ textToSpeech: value })}
+          onTextToSpeechChange={(value) =>
+            updateSettings({ textToSpeech: value })
+          }
           voiceSettings={!!selectedVoice}
-          onVoiceSettingsChange={(value) => updateSettings({ selectedVoice: value ? "default" : "" })}
+          onVoiceSettingsChange={(value) =>
+            updateSettings({ selectedVoice: value ? "default" : "" })
+          }
           showImages={showImages}
           onShowImagesChange={(value) => updateSettings({ showImages: value })}
           readingReminders={false}
@@ -114,7 +134,9 @@ export function ReadingHeader({
           analytics={analytics}
           onAnalyticsChange={(value) => updateSettings({ analytics: value })}
           personalizedRecommendations={personalizedRecommendations}
-          onPersonalizedRecommendationsChange={(value) => updateSettings({ personalizedRecommendations: value })}
+          onPersonalizedRecommendationsChange={(value) =>
+            updateSettings({ personalizedRecommendations: value })
+          }
         />
       </div>
     </div>

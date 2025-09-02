@@ -19,7 +19,7 @@ app.use(
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
 
 app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
@@ -31,7 +31,7 @@ app.use(
     createContext: (_opts, context) => {
       return createContext({ context });
     },
-  })
+  }),
 );
 
 try {
@@ -42,6 +42,5 @@ try {
 } catch (error) {
   console.error(error);
 }
-
 
 export default app;

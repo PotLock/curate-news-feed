@@ -11,7 +11,7 @@ export interface SearchableItem {
 
 export function useSearch<T extends SearchableItem>(
   items: T[],
-  searchQuery: string
+  searchQuery: string,
 ) {
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -37,16 +37,18 @@ export function useSearch<T extends SearchableItem>(
       }
 
       // Search in categories
-      if (item.category?.some(cat => 
-        cat.name?.toLowerCase().includes(query)
-      )) {
+      if (
+        item.category?.some((cat) => cat.name?.toLowerCase().includes(query))
+      ) {
         return true;
       }
 
       // Search in authors
-      if (item.author?.some(author => 
-        author.name?.toLowerCase().includes(query)
-      )) {
+      if (
+        item.author?.some((author) =>
+          author.name?.toLowerCase().includes(query),
+        )
+      ) {
         return true;
       }
 

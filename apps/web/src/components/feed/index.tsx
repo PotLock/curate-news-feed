@@ -9,12 +9,12 @@ interface FeedProps {
 
 export function Feed({ data }: FeedProps) {
   const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     }).format(date);
   };
 
@@ -35,9 +35,7 @@ export function Feed({ data }: FeedProps) {
               {data.options.title}
             </h1>
             {data.options.description && (
-              <p className="text-gray-600 mb-3">
-                {data.options.description}
-              </p>
+              <p className="text-gray-600 mb-3">{data.options.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
               {data.options.generator && (
@@ -51,8 +49,16 @@ export function Feed({ data }: FeedProps) {
               )}
               {data.options.podcast && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z" clipRule="evenodd" />
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Podcast
                 </span>
@@ -75,7 +81,9 @@ export function Feed({ data }: FeedProps) {
         {data.categories && data.categories.length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-gray-700">Categories:</span>
+              <span className="text-sm font-medium text-gray-700">
+                Categories:
+              </span>
             </div>
             <div className="flex flex-wrap gap-2">
               {data.categories.map((category, idx) => (
@@ -94,7 +102,9 @@ export function Feed({ data }: FeedProps) {
         {data.contributors && data.contributors.length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-gray-700">Contributors:</span>
+              <span className="text-sm font-medium text-gray-700">
+                Contributors:
+              </span>
             </div>
             <div className="flex flex-wrap gap-3">
               {data.contributors.map((contributor, idx) => (
