@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { CloseIcon } from "./icons";
 import { ReadingSettingsDialog } from "./ReadingSettingsDialog";
+import { useReadingSettings } from "@/contexts/reading-settings-context";
 import {
   CategoriesSection,
   TimeSection,
@@ -23,16 +24,16 @@ export function ReadingHeader({
   authorName,
 }: ReadingHeaderProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [readingSpeed, setReadingSpeed] = useState([8]);
-  const [autoAdvance, setAutoAdvance] = useState(false);
-  const [textToSpeech, setTextToSpeech] = useState(false);
-  const [voiceSettings, setVoiceSettings] = useState(false);
-  const [showImages, setShowImages] = useState(true);
-  const [readingReminders, setReadingReminders] = useState(false);
-  const [weeklyDigest, setWeeklyDigest] = useState(false);
-  const [analytics, setAnalytics] = useState(true);
-  const [personalizedRecommendations, setPersonalizedRecommendations] =
-    useState(true);
+  const {
+    readingSpeed,
+    autoAdvance,
+    textToSpeech,
+    selectedVoice,
+    showImages,
+    analytics,
+    personalizedRecommendations,
+    updateSettings
+  } = useReadingSettings();
 
   return (
     <div className="w-full flex max-w-[785px] items-center justify-between mb-4 sm:mb-6 lg:mb-8">
@@ -67,24 +68,24 @@ export function ReadingHeader({
           <ReadingSettingsDialog
             isOpen={isSettingsOpen}
             onOpenChange={setIsSettingsOpen}
-            readingSpeed={readingSpeed}
-            onReadingSpeedChange={setReadingSpeed}
+            readingSpeed={[readingSpeed]}
+            onReadingSpeedChange={(value) => updateSettings({ readingSpeed: value[0] })}
             autoAdvance={autoAdvance}
-            onAutoAdvanceChange={setAutoAdvance}
+            onAutoAdvanceChange={(value) => updateSettings({ autoAdvance: value })}
             textToSpeech={textToSpeech}
-            onTextToSpeechChange={setTextToSpeech}
-            voiceSettings={voiceSettings}
-            onVoiceSettingsChange={setVoiceSettings}
+            onTextToSpeechChange={(value) => updateSettings({ textToSpeech: value })}
+            voiceSettings={!!selectedVoice}
+            onVoiceSettingsChange={(value) => updateSettings({ selectedVoice: value ? "default" : "" })}
             showImages={showImages}
-            onShowImagesChange={setShowImages}
-            readingReminders={readingReminders}
-            onReadingRemindersChange={setReadingReminders}
-            weeklyDigest={weeklyDigest}
-            onWeeklyDigestChange={setWeeklyDigest}
+            onShowImagesChange={(value) => updateSettings({ showImages: value })}
+            readingReminders={false}
+            onReadingRemindersChange={() => {}}
+            weeklyDigest={false}
+            onWeeklyDigestChange={() => {}}
             analytics={analytics}
-            onAnalyticsChange={setAnalytics}
+            onAnalyticsChange={(value) => updateSettings({ analytics: value })}
             personalizedRecommendations={personalizedRecommendations}
-            onPersonalizedRecommendationsChange={setPersonalizedRecommendations}
+            onPersonalizedRecommendationsChange={(value) => updateSettings({ personalizedRecommendations: value })}
           />
         </div>
       </div>
@@ -96,24 +97,24 @@ export function ReadingHeader({
         <ReadingSettingsDialog
           isOpen={isSettingsOpen}
           onOpenChange={setIsSettingsOpen}
-          readingSpeed={readingSpeed}
-          onReadingSpeedChange={setReadingSpeed}
+          readingSpeed={[readingSpeed]}
+          onReadingSpeedChange={(value) => updateSettings({ readingSpeed: value[0] })}
           autoAdvance={autoAdvance}
-          onAutoAdvanceChange={setAutoAdvance}
+          onAutoAdvanceChange={(value) => updateSettings({ autoAdvance: value })}
           textToSpeech={textToSpeech}
-          onTextToSpeechChange={setTextToSpeech}
-          voiceSettings={voiceSettings}
-          onVoiceSettingsChange={setVoiceSettings}
+          onTextToSpeechChange={(value) => updateSettings({ textToSpeech: value })}
+          voiceSettings={!!selectedVoice}
+          onVoiceSettingsChange={(value) => updateSettings({ selectedVoice: value ? "default" : "" })}
           showImages={showImages}
-          onShowImagesChange={setShowImages}
-          readingReminders={readingReminders}
-          onReadingRemindersChange={setReadingReminders}
-          weeklyDigest={weeklyDigest}
-          onWeeklyDigestChange={setWeeklyDigest}
+          onShowImagesChange={(value) => updateSettings({ showImages: value })}
+          readingReminders={false}
+          onReadingRemindersChange={() => {}}
+          weeklyDigest={false}
+          onWeeklyDigestChange={() => {}}
           analytics={analytics}
-          onAnalyticsChange={setAnalytics}
+          onAnalyticsChange={(value) => updateSettings({ analytics: value })}
           personalizedRecommendations={personalizedRecommendations}
-          onPersonalizedRecommendationsChange={setPersonalizedRecommendations}
+          onPersonalizedRecommendationsChange={(value) => updateSettings({ personalizedRecommendations: value })}
         />
       </div>
     </div>

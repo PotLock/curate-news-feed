@@ -1,9 +1,10 @@
 import { Button } from "../ui/button";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "motion/react";
 import type { PanInfo } from "motion/react";
+import { useReadingSettings } from "@/contexts/reading-settings-context";
 
 interface ArticleItem {
   id?: string;
@@ -47,6 +48,7 @@ export function ReadingArticle({
   generateSlug,
 }: ReadingArticleProps) {
   const navigate = useNavigate();
+  const { showImages, autoAdvance, readingSpeed } = useReadingSettings();
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
     null
   );
@@ -54,6 +56,92 @@ export function ReadingArticle({
   const [dragDirection, setDragDirection] = useState<"left" | "right" | null>(
     null
   );
+  
+  // Auto-advance state
+  const [timeRemaining, setTimeRemaining] = useState(readingSpeed);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-advance functionality
+  const startAutoAdvance = () => {
+    if (!autoAdvance || !nextItem) return;
+    
+    // Clear any existing timers
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    setTimeRemaining(readingSpeed);
+    setIsPaused(false);
+    
+    // Update countdown every second
+    intervalRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          // Navigate to next article
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          navigate({
+            to: "/reading/$feedId/$slug",
+            params: { feedId, slug: generateSlug(nextItem.title) },
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const pauseAutoAdvance = () => {
+    setIsPaused(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  const resumeAutoAdvance = () => {
+    if (!autoAdvance || !nextItem || timeRemaining <= 0) return;
+    
+    setIsPaused(false);
+    
+    // Resume with current timeRemaining value
+    intervalRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          // Navigate to next article
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          navigate({
+            to: "/reading/$feedId/$slug",
+            params: { feedId, slug: generateSlug(nextItem.title) },
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Start auto-advance when component mounts or settings change
+  useEffect(() => {
+    if (autoAdvance && nextItem && !isTransitioning) {
+      startAutoAdvance();
+    }
+    
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [autoAdvance, readingSpeed, nextItem, isTransitioning]);
+
+  // Pause auto-advance on user interaction
+  const handleMouseEnter = () => {
+    if (autoAdvance) pauseAutoAdvance();
+  };
+
+  const handleMouseLeave = () => {
+    if (autoAdvance && isPaused) resumeAutoAdvance();
+  };
 
   const handleDrag = (
     _: MouseEvent | TouchEvent | PointerEvent,
@@ -80,6 +168,9 @@ export function ReadingArticle({
 
     // Check if swipe is strong enough (velocity or distance)
     if (Math.abs(velocity) > 500 || Math.abs(offset) > threshold) {
+      // Pause auto-advance when user manually navigates
+      if (autoAdvance) pauseAutoAdvance();
+      
       if (offset > 0 && prevItem) {
         // Swipe right - go to previous
         setIsTransitioning(true);
@@ -225,8 +316,8 @@ export function ReadingArticle({
           </div>
         </div>
 
-        {/* 3. Feed Image - Only show for non-background cards */}
-        {!isBackground && getImageUrl(articleData.image) && (
+        {/* 3. Feed Image - Only show for non-background cards and if showImages is enabled */}
+        {!isBackground && showImages && getImageUrl(articleData.image) && (
           <div className="mb-6 sm:mb-8 lg:mb-10 px-4 sm:px-0">
             <img
               src={getImageUrl(articleData.image)!}
@@ -427,6 +518,8 @@ export function ReadingArticle({
             dragMomentum={false}
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             whileDrag={{
               scale: 0.95,
               rotateY: 0,
@@ -439,6 +532,30 @@ export function ReadingArticle({
             }}
           >
             <ArticleCard articleData={item} />
+            
+            {/* Auto-advance countdown indicator */}
+            {autoAdvance && nextItem && timeRemaining > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: isPaused ? 0.3 : 1, scale: 1 }}
+                className="absolute top-4 right-4 bg-black/80 text-white px-3 py-2 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm"
+              >
+                {isPaused ? (
+                  <>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
+                      <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+                    </svg>
+                    Paused
+                  </>
+                ) : (
+                  <>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    {timeRemaining}s
+                  </>
+                )}
+              </motion.div>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
