@@ -39,6 +39,9 @@ interface ReadingArticleProps {
   prevItem?: ArticleItem | null;
   nextItem?: ArticleItem | null;
   generateSlug: (title: string) => string;
+  onNavigateToNext?: () => void;
+  onNavigateToPrev?: () => void;
+  onNavigateToArticle?: (item: ArticleItem) => void; // Keep for backward compatibility
 }
 
 export function ReadingArticle({
@@ -47,6 +50,9 @@ export function ReadingArticle({
   prevItem,
   nextItem,
   generateSlug,
+  onNavigateToNext,
+  onNavigateToPrev,
+  onNavigateToArticle,
 }: ReadingArticleProps) {
   const navigate = useNavigate();
   const { showImages, autoAdvance, readingSpeed, textToSpeech } =
@@ -330,12 +336,20 @@ export function ReadingArticle({
       // Both left and right swipes go to next article (if available)
       if (nextItem) {
         setIsTransitioning(true);
-        // Fade out current content and fade in new content
+        // Use new navigation handlers if provided
         setTimeout(() => {
-          navigate({
-            to: "/reading/$feedId/$slug",
-            params: { feedId, slug: generateSlug(nextItem.title) },
-          });
+          if (onNavigateToNext) {
+            onNavigateToNext();
+          } else if (onNavigateToArticle) {
+            // Backward compatibility
+            onNavigateToArticle(nextItem);
+          } else {
+            navigate({
+              to: "/reading/$feedId/$slug",
+              params: { feedId, slug: generateSlug(nextItem.title) },
+            });
+          }
+          setIsTransitioning(false);
         }, 200); // Quick transition
       }
     }
