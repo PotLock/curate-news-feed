@@ -259,8 +259,8 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
             ))}
           </div>
 
-          {/* Sticky Bottom CTA */}
-          <div className="sticky bottom-0 h-20 sm:h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0 rounded-b-lg z-10">
+          {/* Sticky Bottom CTA - Fixed on mobile, sticky on desktop */}
+          <div className="fixed sm:sticky bottom-0 left-0 right-0 sm:left-auto sm:right-auto h-20 sm:h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0 rounded-b-lg z-10">
             {displayItems.length > 0 && feedId && (
               <Link
                 to="/reading/$feedId/$slug"
