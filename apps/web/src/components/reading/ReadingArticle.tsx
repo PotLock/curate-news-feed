@@ -51,13 +51,14 @@ export function ReadingArticle({
   const navigate = useNavigate();
   const { showImages, autoAdvance, readingSpeed, textToSpeech } =
     useReadingSettings();
-  const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
-    null,
-  );
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [dragDirection, setDragDirection] = useState<"left" | "right" | null>(
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(
     null,
   );
+  const [swipeOpacity, setSwipeOpacity] = useState(0);
+  
+  // Track swipe distance for visual feedback
+  const swipeDistance = useRef(0);
 
   // Auto-advance state
   const [timeRemaining, setTimeRemaining] = useState(readingSpeed);
@@ -290,10 +291,17 @@ export function ReadingArticle({
     info: PanInfo,
   ) => {
     const offset = info.offset.x;
-    // Update drag direction based on swipe direction
+    swipeDistance.current = offset;
+    
+    // Update swipe direction and opacity based on gesture
     if (Math.abs(offset) > 20) {
-      // Small threshold to avoid jitter
-      setDragDirection(offset > 0 ? "right" : "left");
+      setSwipeDirection(offset > 0 ? "right" : "left");
+      // Calculate opacity based on swipe distance (max at 200px)
+      const opacity = Math.min(Math.abs(offset) / 200, 0.6);
+      setSwipeOpacity(opacity);
+    } else {
+      setSwipeDirection(null);
+      setSwipeOpacity(0);
     }
   };
 
@@ -305,8 +313,10 @@ export function ReadingArticle({
     const velocity = info.velocity.x;
     const offset = info.offset.x;
 
-    // Reset drag direction
-    setDragDirection(null);
+    // Reset swipe visuals
+    setSwipeDirection(null);
+    setSwipeOpacity(0);
+    swipeDistance.current = 0;
 
     // Check if swipe is strong enough (velocity or distance)
     if (Math.abs(velocity) > 500 || Math.abs(offset) > threshold) {
@@ -320,15 +330,13 @@ export function ReadingArticle({
       // Both left and right swipes go to next article (if available)
       if (nextItem) {
         setIsTransitioning(true);
-        // Set exit direction based on swipe direction for proper animation
-        setExitDirection(offset > 0 ? "right" : "left");
-        // Wait for exit animation to complete (spring animation + opacity fade)
+        // Fade out current content and fade in new content
         setTimeout(() => {
           navigate({
             to: "/reading/$feedId/$slug",
             params: { feedId, slug: generateSlug(nextItem.title) },
           });
-        }, 600); // Increased to match animation duration
+        }, 200); // Quick transition
       }
     }
   };
@@ -546,149 +554,84 @@ export function ReadingArticle({
     </article>
   );
 
-  // Card stack animations
+  // Simple fade animations for content transitions
   const variants = {
     enter: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-      rotateY: 0,
+      opacity: 0,
       transition: {
-        type: "spring" as const,
-        stiffness: 400,
-        damping: 35,
-        opacity: { duration: 0.2 },
+        duration: 0.2,
       },
     },
     center: {
-      x: 0,
       opacity: 1,
-      scale: 1,
-      rotateY: 0,
       transition: {
-        type: "spring" as const,
-        stiffness: 400,
-        damping: 35,
+        duration: 0.2,
       },
     },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 1200 : -1200,
+    exit: {
       opacity: 0,
-      scale: 0.8,
-      rotateY: direction < 0 ? -25 : 25,
       transition: {
-        type: "spring" as const,
-        stiffness: 300,
-        damping: 30,
-        opacity: { duration: 0.4 },
-        scale: { duration: 0.5 },
+        duration: 0.2,
       },
-    }),
+    },
   };
 
-  // Background card animations during transition
-  const backgroundVariants = {
-    hidden: { scale: 0.9, y: 20, opacity: 0.8 },
-    visible: {
-      scale: isTransitioning ? 1 : 0.9,
-      y: isTransitioning ? 0 : 20,
-      opacity: 1,
-      transition: {
-        type: "spring" as const,
-        stiffness: 400,
-        damping: 35,
-        duration: 0.4,
-      },
-    },
-  };
 
   return (
     <div
       className="relative w-full max-w-[660px] overflow-visible"
       style={{ perspective: "1000px" }}
     >
-      {/* Card Stack Container */}
+      {/* Card Container - Stationary */}
       <div className="relative">
-        {/* Background card - Show only one at a time based on drag direction */}
-        {(() => {
-          // Determine which background card to show
-          let backgroundCard = null;
-
-          if (dragDirection === "right" && prevItem) {
-            // Swiping right - show previous card
-            backgroundCard = prevItem;
-          } else if (dragDirection === "left" && nextItem) {
-            // Swiping left - show next card
-            backgroundCard = nextItem;
-          } else if (!dragDirection && nextItem) {
-            // Default state - show next card
-            backgroundCard = nextItem;
-          }
-
-          return backgroundCard ? (
-            <motion.div
-              key={backgroundCard.id || backgroundCard.title}
-              className="absolute inset-0 pointer-events-none"
-              variants={backgroundVariants}
-              initial="hidden"
-              animate="visible"
-              style={{ zIndex: 0 }}
-            >
-              <ArticleCard articleData={backgroundCard} isBackground={true} />
-            </motion.div>
-          ) : null;
-        })()}
-
-        {/* Main card (current article) with AnimatePresence for smooth transitions */}
-        <AnimatePresence mode="wait" custom={exitDirection === "left" ? -1 : 1}>
+        {/* Main card with content transitions */}
+        <AnimatePresence mode="wait">
           <motion.div
             key={item.id}
-            custom={exitDirection === "left" ? -1 : 1}
             variants={variants}
             initial="enter"
             animate="center"
             exit="exit"
-            drag="x"
-            dragElastic={0.3}
-            dragConstraints={{ left: -300, right: 300 }}
-            dragMomentum={false}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            whileDrag={{
-              scale: 0.95,
-              rotateY: 0,
-              cursor: "grabbing",
-            }}
-            className="relative cursor-grab active:cursor-grabbing touch-manipulation"
-            style={{
-              zIndex: 10,
-              transformStyle: "preserve-3d",
-            }}
+            className="relative"
+            style={{ zIndex: 10 }}
           >
+            {/* Invisible drag layer for gesture detection */}
+            <motion.div
+              drag="x"
+              dragElastic={0.2}
+              dragConstraints={{ left: -200, right: 200 }}
+              dragSnapToOrigin={true}
+              onDrag={handleDrag}
+              onDragEnd={handleDragEnd}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              className="absolute inset-0 z-30 cursor-grab active:cursor-grabbing"
+              style={{ touchAction: 'none' }}
+            />
+            
+            {/* Stationary card content */}
             <ArticleCard articleData={item} />
 
             {/* Swipe hints - Green for like (right), Red for dislike (left) */}
-            {dragDirection && (
+            {swipeDirection && (
               <motion.div
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                animate={{ opacity: swipeOpacity }}
                 exit={{ opacity: 0 }}
                 className={`absolute inset-0 rounded-2xl flex items-center justify-center pointer-events-none z-20 ${
-                  dragDirection === "right"
+                  swipeDirection === "right"
                     ? "bg-green-500/20 border-2 border-green-500/50"
                     : "bg-red-500/20 border-2 border-red-500/50"
                 }`}
               >
                 <div
                   className={`flex flex-col items-center gap-2 ${
-                    dragDirection === "right"
+                    swipeDirection === "right"
                       ? "text-green-600"
                       : "text-red-600"
                   }`}
                 >
-                  {dragDirection === "right" ? (
+                  {swipeDirection === "right" ? (
                     <>
                       {/* Like/Heart icon */}
                       <svg
