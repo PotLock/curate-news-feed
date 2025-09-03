@@ -593,7 +593,7 @@ export function ReadingArticle({
 
   return (
     <div
-      className="relative w-full max-w-[660px] overflow-visible"
+      className="h-full overflow-y-auto w-full max-w-[660px]"
       style={{ perspective: "1000px" }}
     >
       {/* Card Container - Stationary */}

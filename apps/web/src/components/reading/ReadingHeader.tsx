@@ -36,7 +36,7 @@ export function ReadingHeader({
   } = useReadingSettings();
 
   return (
-    <div className="w-full flex max-w-[785px] items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+    <div className="w-full flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
       {/* Close Button */}
       <Link
         to="/$feedId"
