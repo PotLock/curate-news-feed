@@ -42,9 +42,14 @@ export function ReadingActions({
             // Fallback to user email or ID if NEAR profile not available
             setUserAccountId(session.user.email || session.user.id);
           }
+        } else {
+          // Use a generic account ID for anonymous users
+          setUserAccountId("anonymous-user");
         }
       } catch (error) {
         console.warn("Failed to get user account:", error);
+        // Use a generic account ID for anonymous users
+        setUserAccountId("anonymous-user");
       }
     };
 
@@ -104,7 +109,7 @@ export function ReadingActions({
   // Save/unsave article with user-specific storage
   const handleSave = () => {
     if (!userAccountId) {
-      toast.error("Please log in to save articles");
+      toast.error("Unable to save articles");
       return;
     }
 
@@ -135,7 +140,7 @@ export function ReadingActions({
   // Handle like/dislike article
   const handleLikeDislike = (liked: boolean) => {
     if (!userAccountId) {
-      toast.error("Please log in to like/dislike articles");
+      toast.error("Unable to like/dislike articles");
       return;
     }
 

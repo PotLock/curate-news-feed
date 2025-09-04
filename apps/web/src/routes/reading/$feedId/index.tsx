@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ReadingHeader } from "@/components/reading/ReadingHeader";
 import { ReadingArticle } from "@/components/reading/ReadingArticle";
 import { ReadingActions } from "@/components/reading/ReadingActions";
@@ -57,6 +57,7 @@ function ReadingLayoutContent() {
   const { feedId } = Route.useParams();
   const { trpc } = Route.useRouteContext();
   const search = Route.useSearch();
+  const navigate = useNavigate();
   const { textToSpeech } = useReadingSettings();
 
   const loaderData = Route.useLoaderData();
@@ -144,19 +145,36 @@ function ReadingLayoutContent() {
   // Navigation handlers for swipe actions
   const handleNavigateToNext = () => {
     if (currentArticleIndex < feedItems.length - 1) {
-      setCurrentArticleIndex(currentArticleIndex + 1);
+      const newIndex = currentArticleIndex + 1;
+      setCurrentArticleIndex(newIndex);
+      navigate({
+        to: "/reading/$feedId",
+        params: { feedId },
+        search: { article: newIndex },
+      });
     }
   };
 
   const handleNavigateToPrev = () => {
     if (currentArticleIndex > 0) {
-      setCurrentArticleIndex(currentArticleIndex - 1);
+      const newIndex = currentArticleIndex - 1;
+      setCurrentArticleIndex(newIndex);
+      navigate({
+        to: "/reading/$feedId",
+        params: { feedId },
+        search: { article: newIndex },
+      });
     }
   };
 
   // Reset function to go back to first article
   const handleReset = () => {
     setCurrentArticleIndex(0);
+    navigate({
+      to: "/reading/$feedId",
+      params: { feedId },
+      search: { article: 0 },
+    });
   };
 
   // TTS handlers
