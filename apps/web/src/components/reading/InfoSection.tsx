@@ -279,11 +279,16 @@ export function CategoriesSection({
 
 interface TimeSectionProps {
   uploadDate: string;
+  onPeriodChange?: (period: string) => void;
+  selectedPeriod?: string;
 }
 
-export function TimeSection({ uploadDate }: TimeSectionProps) {
+export function TimeSection({ uploadDate, onPeriodChange, selectedPeriod: parentSelectedPeriod }: TimeSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("All Time");
+  
+  // Use parent selectedPeriod if provided, otherwise fall back to local state
+  const currentSelectedPeriod = parentSelectedPeriod || selectedPeriod;
 
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -319,8 +324,8 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
 
   const handlePeriodSelect = (period: string) => {
     setSelectedPeriod(period);
-    // Here you can add logic to filter articles based on the selected period
-    console.log("Selected period:", period);
+    onPeriodChange?.(period);
+    setIsOpen(false); // Close the dialog after selection
   };
 
   const periodOptions = [
@@ -337,7 +342,7 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
         <button className="flex items-center gap-[10px] hover:opacity-70 transition-opacity cursor-pointer">
           <ClockIcon />
           <span className="text-[#27272A] text-center font-inter text-sm font-medium leading-5">
-            {getRelativeTime(uploadDate)}
+            {currentSelectedPeriod}
           </span>
         </button>
       </DialogTrigger>
@@ -375,7 +380,7 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
                 /* Checkbox for "All Time" */
                 <>
                   <Checkbox
-                    checked={selectedPeriod === period}
+                    checked={currentSelectedPeriod === period}
                     onCheckedChange={() => handlePeriodSelect(period)}
                   />
                   <span className="text-foreground font-inter text-sm">
@@ -387,7 +392,7 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
                 <button
                   onClick={() => handlePeriodSelect(period)}
                   className={`text-left font-inter text-sm transition-colors ${
-                    selectedPeriod === period 
+                    currentSelectedPeriod === period 
                       ? "text-foreground font-medium" 
                       : "text-muted-foreground hover:text-foreground"
                   }`}

@@ -69,6 +69,9 @@ function ReadingLayoutContent() {
 
   // State for selected feeds (for multi-feed support)
   const [selectedFeedIds, setSelectedFeedIds] = useState<string[]>([feedId]);
+  
+  // State for time period filter
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("All Time");
 
   // Load saved feed selections on component mount
   useEffect(() => {
@@ -111,6 +114,13 @@ function ReadingLayoutContent() {
     });
   };
 
+  // Handle period filter changes
+  const handlePeriodChange = (period: string) => {
+    setSelectedPeriod(period);
+    // Reset to first article when period changes
+    setCurrentArticleIndex(0);
+  };
+
   // TTS state and handlers
   const [isTTSPlaying, setIsTTSPlaying] = useState(false);
   const [isTTSPaused, setIsTTSPaused] = useState(false);
@@ -127,6 +137,33 @@ function ReadingLayoutContent() {
       setCurrentArticleIndex(search.article);
     }
   }, [search.article]);
+
+  // Filter articles based on selected time period
+  const filterArticlesByPeriod = useCallback((articles: any[], period: string) => {
+    if (period === "All Time") return articles;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    return articles.filter((article) => {
+      const articleDate = new Date(article.item.date);
+      const diffInMs = now.getTime() - articleDate.getTime();
+      const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+      switch (period) {
+        case "Today":
+          return articleDate >= today;
+        case "This Week":
+          return diffInDays <= 7;
+        case "This Month":
+          return diffInDays <= 30;
+        case "Older":
+          return diffInDays > 30;
+        default:
+          return true;
+      }
+    });
+  }, []);
 
   // Validate that we have the required data
   if (!feedId) {
@@ -205,8 +242,11 @@ function ReadingLayoutContent() {
     otherFeedArticles.sort(sortByDate);
 
     // Combine with URL feed articles first, then other feeds
-    return [...urlFeedArticles, ...otherFeedArticles];
-  }, [feedQueries, selectedFeedIds, feedId]);
+    const allArticles = [...urlFeedArticles, ...otherFeedArticles];
+    
+    // Apply time period filter
+    return filterArticlesByPeriod(allArticles, selectedPeriod);
+  }, [feedQueries, selectedFeedIds, feedId, selectedPeriod, filterArticlesByPeriod]);
 
   // Check for errors in any feed query
   const hasErrors = feedQueries.some((query: any) => query.error);
@@ -333,14 +373,28 @@ function ReadingLayoutContent() {
     );
   }
 
-  if (!currentItem) {
-    return (
-      <div className="px-3 sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-black mb-4">
-            No Articles Available
-          </h1>
-          <p className="text-gray-600 mb-6">This feed appears to be empty.</p>
+  // Check if this is due to time filtering (moved out of currentItem check)
+  const isFilteringActive = selectedPeriod !== "All Time";
+  const noArticlesContent = !currentItem && (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-black mb-4">
+          {isFilteringActive ? "No Articles Found" : "No Articles Available"}
+        </h1>
+        <p className="text-gray-600 mb-6">
+          {isFilteringActive 
+            ? `No articles found for the selected time period: ${selectedPeriod}`
+            : "This feed appears to be empty."
+          }
+        </p>
+        {isFilteringActive ? (
+          <button
+            onClick={() => handlePeriodChange("All Time")}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+          >
+            Reset Filters
+          </button>
+        ) : (
           <Link
             to="/$feedId"
             params={{ feedId }}
@@ -348,10 +402,10 @@ function ReadingLayoutContent() {
           >
             Back to Feed
           </Link>
-        </div>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="h-screen overflow-hidden flex flex-col px-3 max-w-screen sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] items-center">
@@ -360,9 +414,11 @@ function ReadingLayoutContent() {
           <ReadingHeader
             feedId={feedId}
             categoryCount={getCategoryCount()}
-            uploadDate={currentItem.date}
-            authorName={currentItem.author?.[0]?.name}
+            uploadDate={currentItem?.date || new Date().toISOString()}
+            authorName={currentItem?.author?.[0]?.name}
             onFeedSelectionChange={handleFeedSelectionChange}
+            onPeriodChange={handlePeriodChange}
+            selectedPeriod={selectedPeriod}
           />
         </div>
 
@@ -415,9 +471,9 @@ function ReadingLayoutContent() {
           <div className="flex-shrink-0 mb-6">
             <div className="flex justify-center">
               <ReadingActions
-                articleTitle={currentItem.title}
-                articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem.title)}`}
-                articleId={currentItem.id || currentItem.title}
+                articleTitle={currentItem?.title || "No Article"}
+                articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem?.title || "no-article")}`}
+                articleId={currentItem?.id || currentItem?.title || "no-article"}
                 feedId={feedId}
               />
             </div>
@@ -425,19 +481,23 @@ function ReadingLayoutContent() {
 
           {/* Scrollable Article Container */}
           <div className="flex-1 min-h-0 flex items-center justify-center">
-            <ReadingArticle
-              item={currentItem}
-              feedId={feedId}
-              prevItem={prevItem}
-              nextItem={nextItem}
-              generateSlug={generateSlug}
-              onNavigateToNext={handleNavigateToNext}
-              onNavigateToPrev={handleNavigateToPrev}
-              onTTSStateChange={handleTTSStateChange}
-              onTTSHandlersReady={handleTTSHandlersReady}
-              sourceFeed={currentArticleData?.sourceFeed}
-              showMultiFeedIndicator={selectedFeedIds.length > 1}
-            />
+            {currentItem ? (
+              <ReadingArticle
+                item={currentItem}
+                feedId={feedId}
+                prevItem={prevItem}
+                nextItem={nextItem}
+                generateSlug={generateSlug}
+                onNavigateToNext={handleNavigateToNext}
+                onNavigateToPrev={handleNavigateToPrev}
+                onTTSStateChange={handleTTSStateChange}
+                onTTSHandlersReady={handleTTSHandlersReady}
+                sourceFeed={currentArticleData?.sourceFeed}
+                showMultiFeedIndicator={selectedFeedIds.length > 1}
+              />
+            ) : (
+              noArticlesContent
+            )}
           </div>
         </div>
 
@@ -480,27 +540,31 @@ function ReadingLayoutContent() {
 
           {/* Scrollable Article Container */}
           <div className="flex-1 min-h-0 flex items-center justify-center">
-            <ReadingArticle
-              item={currentItem}
-              feedId={feedId}
-              prevItem={prevItem}
-              nextItem={nextItem}
-              generateSlug={generateSlug}
-              onNavigateToNext={handleNavigateToNext}
-              onNavigateToPrev={handleNavigateToPrev}
-              onTTSStateChange={handleTTSStateChange}
-              onTTSHandlersReady={handleTTSHandlersReady}
-              sourceFeed={currentArticleData?.sourceFeed}
-              showMultiFeedIndicator={selectedFeedIds.length > 1}
-            />
+            {currentItem ? (
+              <ReadingArticle
+                item={currentItem}
+                feedId={feedId}
+                prevItem={prevItem}
+                nextItem={nextItem}
+                generateSlug={generateSlug}
+                onNavigateToNext={handleNavigateToNext}
+                onNavigateToPrev={handleNavigateToPrev}
+                onTTSStateChange={handleTTSStateChange}
+                onTTSHandlersReady={handleTTSHandlersReady}
+                sourceFeed={currentArticleData?.sourceFeed}
+                showMultiFeedIndicator={selectedFeedIds.length > 1}
+              />
+            ) : (
+              noArticlesContent
+            )}
           </div>
 
           {/* Right Actions Panel - Fixed */}
           <div className="flex-shrink-0">
             <ReadingActions
-              articleTitle={currentItem.title}
-              articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem.title)}`}
-              articleId={currentItem.id || currentItem.title}
+              articleTitle={currentItem?.title || "No Article"}
+              articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem?.title || "no-article")}`}
+              articleId={currentItem?.id || currentItem?.title || "no-article"}
               feedId={feedId}
             />
           </div>

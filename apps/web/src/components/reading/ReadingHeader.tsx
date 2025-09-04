@@ -16,6 +16,8 @@ interface ReadingHeaderProps {
   uploadDate: string;
   authorName?: string;
   onFeedSelectionChange?: (selectedFeedIds: string[]) => void;
+  onPeriodChange?: (period: string) => void;
+  selectedPeriod?: string;
 }
 
 export function ReadingHeader({
@@ -24,6 +26,8 @@ export function ReadingHeader({
   uploadDate,
   authorName,
   onFeedSelectionChange,
+  onPeriodChange,
+  selectedPeriod,
 }: ReadingHeaderProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
@@ -58,7 +62,7 @@ export function ReadingHeader({
             onFeedSelectionChange={onFeedSelectionChange}
           />
           <Divider />
-          <TimeSection uploadDate={uploadDate} />
+          <TimeSection uploadDate={uploadDate} onPeriodChange={onPeriodChange} selectedPeriod={selectedPeriod} />
           <Divider />
           <AuthorSection />
           <Divider />
@@ -106,7 +110,7 @@ export function ReadingHeader({
             onFeedSelectionChange={onFeedSelectionChange}
           />
           <Divider />
-          <TimeSection uploadDate={uploadDate} />
+          <TimeSection uploadDate={uploadDate} onPeriodChange={onPeriodChange} selectedPeriod={selectedPeriod} />
           <Divider />
           <AuthorSection />
           <Divider />
