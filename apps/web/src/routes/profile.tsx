@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import ProfileHeader from "@/components/profile-header";
 import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
@@ -7,26 +7,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/profile")({
-  beforeLoad: async ({ location }) => {
-    const { data: session } = await authClient.getSession();
-    if (!session) {
-      throw redirect({
-        to: "/login",
-        search: {
-          redirect: location.pathname,
-        },
-      });
-    }
-    return { session };
-  },
-  loader: ({ context }) => {
-    const queryOptions = context.trpc.privateData.queryOptions();
-
-    return {
-      trpc: context.queryClient.ensureQueryData(queryOptions),
-      session: context.session,
-    };
-  },
   component: RouteComponent,
 });
 
@@ -45,20 +25,25 @@ interface Profile {
 }
 
 function RouteComponent() {
-  const { session } = Route.useLoaderData();
+  const [session, setSession] = useState<any>(null);
   const [nearProfile, setNearProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        if (session) {
+        // Try to get session data, but don't require it
+        const { data: sessionData } = await authClient.getSession();
+        setSession(sessionData);
+
+        if (sessionData) {
           // Try to get the NEAR account ID from the session or accounts
           const { data: response } = await authClient.near.getProfile();
           setNearProfile(response);
         }
       } catch (err) {
-        console.log("No NEAR profile found for user", err);
+        console.log("No session or NEAR profile found", err);
+        setSession(null);
         setNearProfile(null);
       } finally {
         setIsLoading(false);
@@ -66,7 +51,7 @@ function RouteComponent() {
     };
 
     fetchProfile();
-  }, [session]);
+  }, []);
 
   // Get real user data
   const avatarUrl =
@@ -77,18 +62,18 @@ function RouteComponent() {
   // @ts-ignore window.near - for fallback display name like in NearProfile component
   const displayName =
     nearProfile?.name ||
-    session?.user.name ||
-    window?.near?.accountId() ||
-    "Anonymous User";
+    session?.user?.name ||
+    window?.near?.accountId?.() ||
+    "Your Profile";
 
   const profileData = {
     name: displayName,
     description:
       nearProfile?.description ||
-      "A passionate reader and curator of meaningful news content.",
-    joinedDate: new Date(session?.user.createdAt || "2024-01-15"), // Use actual creation date from session
+      "Your Reading Journey",
+    joinedDate: new Date(session?.user?.createdAt || "2024-01-15"), // Use actual creation date from session
     profileImage:
-      avatarUrl || session?.user.image || "https://via.placeholder.com/80x80",
+      avatarUrl || session?.user?.image || "https://via.placeholder.com/80x80",
   };
 
   const formatDate = (date: Date) => {
@@ -268,9 +253,9 @@ function OverviewTab({ session }: { session: any }) {
   useEffect(() => {
     const loadStats = async () => {
       try {
+        // Try to get account ID, use generic fallback if no session
+        let accountId: string;
         if (session?.user) {
-          // Try to get NEAR account ID (same logic as history tabs)
-          let accountId: string;
           try {
             const { data: nearProfile } = await authClient.near.getProfile();
             accountId =
@@ -280,58 +265,61 @@ function OverviewTab({ session }: { session: any }) {
           } catch {
             accountId = session.user.email || session.user.id;
           }
+        } else {
+          // Use a generic account ID for anonymous users
+          accountId = "anonymous-user";
+        }
 
-          setUserAccountId(accountId);
+        setUserAccountId(accountId);
 
-          // Load reading history from localStorage (same as ReadingHistoryTab)
-          const historyKey = `reading-history-${accountId}`;
-          const historyData = localStorage.getItem(historyKey);
+        // Load reading history from localStorage (same as ReadingHistoryTab)
+        const historyKey = `reading-history-${accountId}`;
+        const historyData = localStorage.getItem(historyKey);
 
-          if (historyData) {
-            const historyObj = JSON.parse(historyData);
-            const historyArray = Object.values(
-              historyObj,
-            ) as ReadingHistoryArticle[];
-            // Sort by last read date (newest first) - same as ReadingHistoryTab
-            historyArray.sort(
+        if (historyData) {
+          const historyObj = JSON.parse(historyData);
+          const historyArray = Object.values(
+            historyObj,
+          ) as ReadingHistoryArticle[];
+          // Sort by last read date (newest first) - same as ReadingHistoryTab
+          historyArray.sort(
+            (a, b) =>
+              new Date(b.readAt).getTime() - new Date(a.readAt).getTime(),
+          );
+          setHistoryArticles(historyArray);
+        }
+
+        // Load saved articles from localStorage (same as SavedArticlesTab)
+        const storageKey = `saved-articles-${accountId}`;
+        const savedData = localStorage.getItem(storageKey);
+
+        if (savedData) {
+          const articlesObj = JSON.parse(savedData);
+          const articlesArray = Object.values(articlesObj) as SavedArticle[];
+          // Sort by saved date (newest first) - same as SavedArticlesTab
+          articlesArray.sort(
+            (a, b) =>
+              new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
+          );
+          setSavedArticles(articlesArray);
+        }
+
+        // Load article preferences (likes/dislikes) from localStorage
+        const preferencesKey = `article-preferences-${accountId}`;
+        const preferencesData = localStorage.getItem(preferencesKey);
+
+        if (preferencesData) {
+          const preferencesObj = JSON.parse(preferencesData);
+          const preferencesArray = Object.values(preferencesObj) as any[];
+          // Filter only liked articles and sort by preference date (newest first)
+          const likedArray = preferencesArray
+            .filter((pref: any) => pref.liked === true)
+            .sort(
               (a, b) =>
-                new Date(b.readAt).getTime() - new Date(a.readAt).getTime(),
+                new Date(b.preferenceAt).getTime() -
+                new Date(a.preferenceAt).getTime(),
             );
-            setHistoryArticles(historyArray);
-          }
-
-          // Load saved articles from localStorage (same as SavedArticlesTab)
-          const storageKey = `saved-articles-${accountId}`;
-          const savedData = localStorage.getItem(storageKey);
-
-          if (savedData) {
-            const articlesObj = JSON.parse(savedData);
-            const articlesArray = Object.values(articlesObj) as SavedArticle[];
-            // Sort by saved date (newest first) - same as SavedArticlesTab
-            articlesArray.sort(
-              (a, b) =>
-                new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
-            );
-            setSavedArticles(articlesArray);
-          }
-
-          // Load article preferences (likes/dislikes) from localStorage
-          const preferencesKey = `article-preferences-${accountId}`;
-          const preferencesData = localStorage.getItem(preferencesKey);
-
-          if (preferencesData) {
-            const preferencesObj = JSON.parse(preferencesData);
-            const preferencesArray = Object.values(preferencesObj) as any[];
-            // Filter only liked articles and sort by preference date (newest first)
-            const likedArray = preferencesArray
-              .filter((pref: any) => pref.liked === true)
-              .sort(
-                (a, b) =>
-                  new Date(b.preferenceAt).getTime() -
-                  new Date(a.preferenceAt).getTime(),
-              );
-            setLikedArticles(likedArray);
-          }
+          setLikedArticles(likedArray);
         }
       } catch (error) {
         console.warn("Failed to load stats:", error);
@@ -519,9 +507,9 @@ function ReadingHistoryTab({ session }: { session: any }) {
   useEffect(() => {
     const loadReadingHistory = async () => {
       try {
+        // Try to get account ID, use generic fallback if no session
+        let accountId: string;
         if (session?.user) {
-          // Try to get NEAR account ID
-          let accountId: string;
           try {
             const { data: nearProfile } = await authClient.near.getProfile();
             accountId =
@@ -531,25 +519,28 @@ function ReadingHistoryTab({ session }: { session: any }) {
           } catch {
             accountId = session.user.email || session.user.id;
           }
+        } else {
+          // Use a generic account ID for anonymous users
+          accountId = "anonymous-user";
+        }
 
-          setUserAccountId(accountId);
+        setUserAccountId(accountId);
 
-          // Load reading history from localStorage
-          const historyKey = `reading-history-${accountId}`;
-          const historyData = localStorage.getItem(historyKey);
+        // Load reading history from localStorage
+        const historyKey = `reading-history-${accountId}`;
+        const historyData = localStorage.getItem(historyKey);
 
-          if (historyData) {
-            const historyObj = JSON.parse(historyData);
-            const historyArray = Object.values(
-              historyObj,
-            ) as ReadingHistoryArticle[];
-            // Sort by last read date (newest first)
-            historyArray.sort(
-              (a, b) =>
-                new Date(b.readAt).getTime() - new Date(a.readAt).getTime(),
-            );
-            setHistoryArticles(historyArray);
-          }
+        if (historyData) {
+          const historyObj = JSON.parse(historyData);
+          const historyArray = Object.values(
+            historyObj,
+          ) as ReadingHistoryArticle[];
+          // Sort by last read date (newest first)
+          historyArray.sort(
+            (a, b) =>
+              new Date(b.readAt).getTime() - new Date(a.readAt).getTime(),
+          );
+          setHistoryArticles(historyArray);
         }
       } catch (error) {
         console.warn("Failed to load reading history:", error);
@@ -706,9 +697,9 @@ function SavedArticlesTab({ session }: { session: any }) {
   useEffect(() => {
     const loadSavedArticles = async () => {
       try {
+        // Try to get account ID, use generic fallback if no session
+        let accountId: string;
         if (session?.user) {
-          // Try to get NEAR account ID
-          let accountId: string;
           try {
             const { data: nearProfile } = await authClient.near.getProfile();
             accountId =
@@ -718,23 +709,26 @@ function SavedArticlesTab({ session }: { session: any }) {
           } catch {
             accountId = session.user.email || session.user.id;
           }
+        } else {
+          // Use a generic account ID for anonymous users
+          accountId = "anonymous-user";
+        }
 
-          setUserAccountId(accountId);
+        setUserAccountId(accountId);
 
-          // Load saved articles from localStorage
-          const storageKey = `saved-articles-${accountId}`;
-          const savedData = localStorage.getItem(storageKey);
+        // Load saved articles from localStorage
+        const storageKey = `saved-articles-${accountId}`;
+        const savedData = localStorage.getItem(storageKey);
 
-          if (savedData) {
-            const articlesObj = JSON.parse(savedData);
-            const articlesArray = Object.values(articlesObj) as SavedArticle[];
-            // Sort by saved date (newest first)
-            articlesArray.sort(
-              (a, b) =>
-                new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
-            );
-            setSavedArticles(articlesArray);
-          }
+        if (savedData) {
+          const articlesObj = JSON.parse(savedData);
+          const articlesArray = Object.values(articlesObj) as SavedArticle[];
+          // Sort by saved date (newest first)
+          articlesArray.sort(
+            (a, b) =>
+              new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
+          );
+          setSavedArticles(articlesArray);
         }
       } catch (error) {
         console.warn("Failed to load saved articles:", error);

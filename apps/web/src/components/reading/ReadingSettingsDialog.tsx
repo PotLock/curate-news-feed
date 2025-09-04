@@ -142,7 +142,10 @@ export function ReadingSettingsDialog({
           <p className="text-[#737373] text-sm leading-[20px] order-2 sm:order-1">
             Settings are automatically saved
           </p>
-          <Button className="w-full sm:w-auto order-1 sm:order-2 touch-manipulation">
+          <Button 
+            className="w-full sm:w-auto order-1 sm:order-2 touch-manipulation"
+            onClick={() => onOpenChange(false)}
+          >
             <PlusIcon />
             Done
           </Button>
