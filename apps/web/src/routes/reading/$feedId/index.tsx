@@ -81,7 +81,9 @@ function ReadingLayoutContent() {
         if (savedSelections) {
           const selectedIds = JSON.parse(savedSelections);
           if (Array.isArray(selectedIds) && selectedIds.length > 0) {
-            setSelectedFeedIds(selectedIds);
+            // Always ensure the URL feedId is included and comes first
+            const uniqueFeeds = [feedId, ...selectedIds.filter(id => id !== feedId)];
+            setSelectedFeedIds(uniqueFeeds);
             return;
           }
         }
@@ -161,35 +163,50 @@ function ReadingLayoutContent() {
 
   // Aggregate articles from all selected feeds
   const aggregatedArticles = useMemo(() => {
-    const allArticles: Array<{
+    const urlFeedArticles: Array<{
+      item: any;
+      sourceFeed: { id: string; title: string };
+    }> = [];
+    const otherFeedArticles: Array<{
       item: any;
       sourceFeed: { id: string; title: string };
     }> = [];
 
     feedQueries.forEach((query: any, index: number) => {
-      const feedId = selectedFeedIds[index];
+      const currentFeedId = selectedFeedIds[index];
       const feedData = query.data;
       
       if (feedData?.items) {
-        feedData.items.forEach((item: any) => {
-          allArticles.push({
-            item,
-            sourceFeed: {
-              id: feedId,
-              title: feedData.options?.title || `Feed ${feedId}`,
-            },
-          });
-        });
+        const articles = feedData.items.map((item: any) => ({
+          item,
+          sourceFeed: {
+            id: currentFeedId,
+            title: feedData.options?.title || `Feed ${currentFeedId}`,
+          },
+        }));
+
+        // Separate URL feed articles from other feeds
+        if (currentFeedId === feedId) {
+          urlFeedArticles.push(...articles);
+        } else {
+          otherFeedArticles.push(...articles);
+        }
       }
     });
 
-    // Sort by date (newest first)
-    return allArticles.sort((a, b) => {
+    // Sort each group by date (newest first)
+    const sortByDate = (a: any, b: any) => {
       const dateA = new Date(a.item.date);
       const dateB = new Date(b.item.date);
       return dateB.getTime() - dateA.getTime();
-    });
-  }, [feedQueries, selectedFeedIds]);
+    };
+
+    urlFeedArticles.sort(sortByDate);
+    otherFeedArticles.sort(sortByDate);
+
+    // Combine with URL feed articles first, then other feeds
+    return [...urlFeedArticles, ...otherFeedArticles];
+  }, [feedQueries, selectedFeedIds, feedId]);
 
   // Check for errors in any feed query
   const hasErrors = feedQueries.some((query: any) => query.error);
