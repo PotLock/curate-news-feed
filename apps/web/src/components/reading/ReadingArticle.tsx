@@ -281,36 +281,44 @@ export function ReadingArticle({
   // Save like/dislike preference to localStorage
   const saveLikeDislikePreference = async (liked: boolean) => {
     try {
-      const { data: session } = await authClient.getSession();
-      if (session?.user) {
-        // Get user account ID (same logic as ReadingActions)
-        let accountId: string;
-        try {
-          const { data: nearProfile } = await authClient.near.getProfile();
-          accountId =
-            (window as any)?.near?.accountId?.() ||
-            session.user.email ||
-            session.user.id;
-        } catch {
-          accountId = session.user.email || session.user.id;
+      // Get user account ID (same logic as ReadingActions)
+      let accountId: string;
+      try {
+        const { data: session } = await authClient.getSession();
+        if (session?.user) {
+          try {
+            const { data: nearProfile } = await authClient.near.getProfile();
+            accountId =
+              (window as any)?.near?.accountId?.() ||
+              session.user.email ||
+              session.user.id;
+          } catch {
+            accountId = session.user.email || session.user.id;
+          }
+        } else {
+          // Use a generic account ID for anonymous users
+          accountId = "anonymous-user";
         }
-
-        const preferencesKey = `article-preferences-${accountId}`;
-        const preferences = JSON.parse(
-          localStorage.getItem(preferencesKey) || "{}",
-        );
-
-        preferences[item.id || item.title] = {
-          id: item.id || item.title,
-          title: item.title,
-          url: item.link,
-          feedId: feedId,
-          liked: liked,
-          preferenceAt: new Date().toISOString(),
-        };
-
-        localStorage.setItem(preferencesKey, JSON.stringify(preferences));
+      } catch {
+        // Use a generic account ID for anonymous users
+        accountId = "anonymous-user";
       }
+
+      const preferencesKey = `article-preferences-${accountId}`;
+      const preferences = JSON.parse(
+        localStorage.getItem(preferencesKey) || "{}",
+      );
+
+      preferences[item.id || item.title] = {
+        id: item.id || item.title,
+        title: item.title,
+        url: item.link,
+        feedId: feedId,
+        liked: liked,
+        preferenceAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem(preferencesKey, JSON.stringify(preferences));
     } catch (error) {
       console.warn("Failed to save preference:", error);
     }
