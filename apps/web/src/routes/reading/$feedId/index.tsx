@@ -101,6 +101,12 @@ function ReadingLayoutContent() {
     setSelectedFeedIds(newSelectedFeedIds);
     // Reset to first article when feed selection changes
     setCurrentArticleIndex(0);
+    // Navigate to article 0 in URL as well
+    navigate({
+      to: "/reading/$feedId",
+      params: { feedId },
+      search: { article: 0 },
+    });
   };
 
   // TTS state and handlers
@@ -192,6 +198,20 @@ function ReadingLayoutContent() {
 
   // Use aggregated articles
   const feedItems = aggregatedArticles.map((article) => article.item);
+  
+  // Validate and fix article index if out of bounds
+  useEffect(() => {
+    if (aggregatedArticles.length > 0 && currentArticleIndex >= aggregatedArticles.length) {
+      // Current index is out of bounds, reset to 0
+      setCurrentArticleIndex(0);
+      navigate({
+        to: "/reading/$feedId",
+        params: { feedId },
+        search: { article: 0 },
+      });
+    }
+  }, [aggregatedArticles.length, currentArticleIndex, navigate, feedId]);
+  
   const currentArticleData = aggregatedArticles[currentArticleIndex];
   const currentItem = currentArticleData?.item;
 

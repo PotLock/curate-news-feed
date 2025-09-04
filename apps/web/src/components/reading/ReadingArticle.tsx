@@ -75,10 +75,10 @@ export function ReadingArticle({
     useReadingSettings();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(
-    null,
+    null
   );
   const [swipeOpacity, setSwipeOpacity] = useState(0);
-  
+
   // Track swipe distance for visual feedback
   const swipeDistance = useRef(0);
 
@@ -313,7 +313,7 @@ export function ReadingArticle({
 
       const preferencesKey = `article-preferences-${accountId}`;
       const preferences = JSON.parse(
-        localStorage.getItem(preferencesKey) || "{}",
+        localStorage.getItem(preferencesKey) || "{}"
       );
 
       preferences[item.id || item.title] = {
@@ -333,11 +333,11 @@ export function ReadingArticle({
 
   const handleDrag = (
     _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo,
+    info: PanInfo
   ) => {
     const offset = info.offset.x;
     swipeDistance.current = offset;
-    
+
     // Update swipe direction and opacity based on gesture
     if (Math.abs(offset) > 20) {
       setSwipeDirection(offset > 0 ? "right" : "left");
@@ -352,7 +352,7 @@ export function ReadingArticle({
 
   const handleDragEnd = (
     _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo,
+    info: PanInfo
   ) => {
     const threshold = 100;
     const velocity = info.velocity.x;
@@ -516,9 +516,7 @@ export function ReadingArticle({
             </svg>
             <span className="text-[#737373] font-Inter text-sm sm:text-base font-medium leading-6">
               From{" "}
-              {item.author && item.author[0]
-                ? item.author[0].name
-                : "Unknown"}
+              {item.author && item.author[0] ? item.author[0].name : "Unknown"}
             </span>
           </div>
         </div>
@@ -548,7 +546,7 @@ export function ReadingArticle({
               .map((paragraph, index) => (
                 <p
                   key={index}
-                  className="text-[#0A0A0A] font-Inter text-base sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
+                  className="text-[#0A0A0A] font-Inter text-base text-wrap sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
                 >
                   {paragraph}
                 </p>
@@ -573,9 +571,7 @@ export function ReadingArticle({
             </svg>
             <p className="text-sm sm:text-base text-[#737373] leading-[24px] text-center sm:text-left">
               Submitted by{" "}
-              {item.author && item.author[0]
-                ? item.author[0].name
-                : "Unknown"}
+              {item.author && item.author[0] ? item.author[0].name : "Unknown"}
             </p>
           </div>
           <Button asChild className="w-full sm:w-auto touch-manipulation">
@@ -639,7 +635,6 @@ export function ReadingArticle({
     },
   };
 
-
   return (
     <div
       className="h-full overflow-y-auto w-full max-w-[660px]"
@@ -669,9 +664,9 @@ export function ReadingArticle({
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               className="absolute inset-0 z-30 cursor-grab active:cursor-grabbing"
-              style={{ touchAction: 'none' }}
+              style={{ touchAction: "none" }}
             />
-            
+
             {/* Stationary card content */}
             <ArticleCard articleData={item} />
 
@@ -771,7 +766,6 @@ export function ReadingArticle({
           </motion.div>
         </AnimatePresence>
       </div>
-
     </div>
   );
 }

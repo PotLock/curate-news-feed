@@ -1,7 +1,12 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { CategoriesIcon, ClockIcon, UserIcon } from "./icons";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery } from "@tanstack/react-query";
@@ -27,21 +32,28 @@ interface CategoriesSectionProps {
   onFeedSelectionChange?: (selectedFeedIds: string[]) => void;
 }
 
-export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange }: CategoriesSectionProps) {
+export function CategoriesSection({
+  count,
+  currentFeedId,
+  onFeedSelectionChange,
+}: CategoriesSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showError, setShowError] = useState(false);
   const trpc = useTRPC();
-  
+
   // Fetch all feeds
   const queryOptions = trpc.getFeeds.queryOptions();
   const { data: feedsData, isLoading } = useQuery(queryOptions);
-  
+
   // Initialize feed states when feeds are loaded
-  const [feedStates, setFeedStates] = useState<Array<{
-    id: string;
-    name: string;
-    description: string;
-    checked: boolean;
-  }>>([]);
+  const [feedStates, setFeedStates] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      checked: boolean;
+    }>
+  >([]);
 
   // Load saved feed selections from localStorage
   const loadSavedFeedSelections = () => {
@@ -49,7 +61,7 @@ export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange 
       const accountId = "anonymous-user"; // This matches the pattern used in ReadingActions
       const savedKey = `selected-feeds-${accountId}`;
       const savedSelections = localStorage.getItem(savedKey);
-      
+
       if (savedSelections) {
         const selectedFeedIds = JSON.parse(savedSelections);
         return selectedFeedIds;
@@ -75,71 +87,72 @@ export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange 
   useEffect(() => {
     if (feedsData?.items) {
       const savedSelections = loadSavedFeedSelections();
-      
+
       setFeedStates(
         feedsData.items.map((feed: any) => ({
           id: feed.id,
-          name: feed.title || 'Untitled Feed',
-          description: feed.description || `Feed containing ${feed.items?.length || 0} articles`,
+          name: feed.title || "Untitled Feed",
+          description:
+            feed.description ||
+            `Feed containing ${feed.items?.length || 0} articles`,
           checked: savedSelections.includes(feed.id),
         }))
       );
     }
   }, [feedsData, currentFeedId]);
-  
-  const selectedFeeds = feedStates.filter(feed => feed.checked).length;
+
+  const selectedFeeds = feedStates.filter((feed) => feed.checked).length;
   const totalFeeds = feedStates.length;
   const unselectedFeeds = totalFeeds - selectedFeeds;
 
   const handleSelectAll = () => {
-    setFeedStates(feeds => feeds.map(feed => ({ ...feed, checked: true })));
+    setFeedStates((feeds) => feeds.map((feed) => ({ ...feed, checked: true })));
+    // Clear error when selecting all
+    if (showError) {
+      setShowError(false);
+    }
   };
 
   const handleFeedToggle = (feedId: string, checked: boolean) => {
-    setFeedStates(feeds => 
-      feeds.map(feed => 
-        feed.id === feedId ? { ...feed, checked } : feed
-      )
+    setFeedStates((feeds) =>
+      feeds.map((feed) => (feed.id === feedId ? { ...feed, checked } : feed))
     );
+    // Clear error when user makes a change
+    if (showError) {
+      setShowError(false);
+    }
   };
 
   const handleSaveSettings = () => {
     const selectedFeedIds = feedStates
-      .filter(feed => feed.checked)
-      .map(feed => feed.id);
-    
+      .filter((feed) => feed.checked)
+      .map((feed) => feed.id);
+
     // Ensure at least one feed is selected
     if (selectedFeedIds.length === 0) {
-      // Re-select current feed if nothing is selected
-      const fallbackFeedId = currentFeedId || feedStates[0]?.id || "";
-      const updatedStates = feedStates.map(feed => ({
-        ...feed,
-        checked: feed.id === fallbackFeedId
-      }));
-      setFeedStates(updatedStates);
-      saveFeedSelections([fallbackFeedId]);
-      onFeedSelectionChange?.([fallbackFeedId]);
-      
-      // Show user feedback that at least one feed must remain selected
-      console.warn("At least one feed must remain selected");
-    } else {
-      // Save the current selections
-      saveFeedSelections(selectedFeedIds);
-      onFeedSelectionChange?.(selectedFeedIds);
+      // Show error message instead of auto-selecting
+      setShowError(true);
+      // Don't close the dialog
+      return;
     }
-    
+
+    // Save the current selections
+    saveFeedSelections(selectedFeedIds);
+    onFeedSelectionChange?.(selectedFeedIds);
+    setShowError(false);
     setIsOpen(false);
   };
 
   const handleCancel = () => {
     // Reset to saved state without making changes
     const savedSelections = loadSavedFeedSelections();
-    setFeedStates(prevStates => 
-      prevStates.map(feed => ({
+    setFeedStates((prevStates) =>
+      prevStates.map((feed) => ({
         ...feed,
-        checked: savedSelections.includes(feed.id)
+        checked: savedSelections.includes(feed.id),
       }))
     );
+    setShowError(false);
     setIsOpen(false);
   };
 
@@ -158,20 +171,27 @@ export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange 
           </div>
         </button>
       </DialogTrigger>
-      <DialogContent className="p-2.5 gap-3 rounded-lg max-w-sm" showCloseButton={false}>
+      <DialogContent
+        className="p-4 gap-3 rounded-lg max-w-sm"
+        showCloseButton={false}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-black font-inter text-sm font-medium">Select Feed</h3>
-          <Button
-            variant="secondary" 
-            size="sm"
-            onClick={handleSelectAll}
-            className="text-black font-inter text-sm font-medium"
-          >
-            Select All
-          </Button>
-        </div>
-        
+        <DialogHeader className="flex items-center justify-between border-b-[1px] border-[#E2E8F0]">
+          <div className="flex items-center justify-between w-full">
+            <h3 className="text-black font-inter text-sm font-medium">
+              Select Feed
+            </h3>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleSelectAll}
+              className="text-black font-inter text-sm font-medium"
+            >
+              Select All
+            </Button>
+          </div>
+        </DialogHeader>
+
         {/* Feed Statistics */}
         <div className="flex flex-row gap-3">
           {/* Active Feeds */}
@@ -183,7 +203,7 @@ export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange 
               Active Feeds
             </span>
           </div>
-          
+
           {/* Hidden Feeds */}
           <div className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-3 flex flex-col justify-center items-center gap-2.5">
             <span className="text-black text-center font-inter text-xl font-bold leading-6">
@@ -199,18 +219,24 @@ export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange 
         <div className="flex flex-col gap-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-4">
-              <span className="text-muted-foreground text-sm">Loading feeds...</span>
+              <span className="text-muted-foreground text-sm">
+                Loading feeds...
+              </span>
             </div>
           ) : feedStates.length === 0 ? (
             <div className="flex items-center justify-center py-4">
-              <span className="text-muted-foreground text-sm">No feeds available</span>
+              <span className="text-muted-foreground text-sm">
+                No feeds available
+              </span>
             </div>
           ) : (
             feedStates.map((feed) => (
               <div key={feed.id} className="flex items-start w-full gap-2">
                 <Checkbox
                   checked={feed.checked}
-                  onCheckedChange={(checked) => handleFeedToggle(feed.id, !!checked)}
+                  onCheckedChange={(checked) =>
+                    handleFeedToggle(feed.id, !!checked)
+                  }
                 />
                 <div className="flex flex-col">
                   <span className="text-foreground font-inter text-sm font-bold leading-[100%]">
@@ -225,20 +251,24 @@ export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange 
           )}
         </div>
 
+        {/* Error Message */}
+        {showError && (
+          <div className="text-red-500 text-sm text-center">
+            Please select at least one feed
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex justify-between items-center">
           <Button
             variant="default"
             size="sm"
             onClick={handleSaveSettings}
+            disabled={feedStates.filter((feed) => feed.checked).length === 0}
           >
             Save Settings
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleCancel}
-          >
+          <Button variant="secondary" size="sm" onClick={handleCancel}>
             Cancel
           </Button>
         </div>
@@ -296,12 +326,17 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
           </span>
         </button>
       </DialogTrigger>
-      <DialogContent className="p-2.5 gap-3 rounded-lg max-w-sm" showCloseButton={false}>
+      <DialogContent
+        className="p-2.5 gap-3 rounded-lg max-w-sm"
+        showCloseButton={false}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-black font-inter text-sm font-medium">Published</h3>
+          <h3 className="text-black font-inter text-sm font-medium">
+            Published
+          </h3>
         </div>
-        
+
         {/* Date and Time Details */}
         <div className="flex flex-col gap-2">
           <div className="text-black font-inter text-base font-medium">
@@ -321,10 +356,7 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
 
 export function AuthorSection() {
   return (
-    <Link
-      to="/profile"
-      className="hover:opacity-70 transition-opacity"
-    >
+    <Link to="/profile" className="hover:opacity-70 transition-opacity">
       <InfoSection icon={<UserIcon />}>
         <span className="sr-only">Go to profile</span>
       </InfoSection>
