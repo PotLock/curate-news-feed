@@ -111,13 +111,17 @@ export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange 
     // Ensure at least one feed is selected
     if (selectedFeedIds.length === 0) {
       // Re-select current feed if nothing is selected
+      const fallbackFeedId = currentFeedId || feedStates[0]?.id || "";
       const updatedStates = feedStates.map(feed => ({
         ...feed,
-        checked: feed.id === currentFeedId
+        checked: feed.id === fallbackFeedId
       }));
       setFeedStates(updatedStates);
-      saveFeedSelections([currentFeedId || ""]);
-      onFeedSelectionChange?.([currentFeedId || ""]);
+      saveFeedSelections([fallbackFeedId]);
+      onFeedSelectionChange?.([fallbackFeedId]);
+      
+      // Show user feedback that at least one feed must remain selected
+      console.warn("At least one feed must remain selected");
     } else {
       // Save the current selections
       saveFeedSelections(selectedFeedIds);

@@ -1,11 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ReadingHeader } from "@/components/reading/ReadingHeader";
 import { ReadingArticle } from "@/components/reading/ReadingArticle";
 import { ReadingActions } from "@/components/reading/ReadingActions";
 import { Button } from "@/components/ui/button";
 import { ReadingSettingsProvider, useReadingSettings } from "@/contexts/reading-settings-context";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 // Function to generate slug from title
 const generateSlug = (title: string): string => {
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/reading/$feedId/")({
 
       // Load the entire feed
       const feedData = await context.queryClient.ensureQueryData(
-        context.trpc.getFeed.queryOptions({
+        (context.trpc.getFeed as any).queryOptions({
           feedId: params.feedId,
         })
       );
@@ -139,21 +139,61 @@ function ReadingLayoutContent() {
     );
   }
 
-  // Simplified approach: just use the existing working pattern
-  const feedQueryOptions = trpc.getFeed.queryOptions({ feedId });
-  const { data: feedData, error } = useQuery({
-    ...feedQueryOptions,
-    initialData: loaderData.feedData,
+  // Multi-feed data fetching
+  const feedQueries = useQueries({
+    queries: selectedFeedIds.map((id) => {
+      const queryOptions = (trpc.getFeed as any).queryOptions({ feedId: id });
+      return {
+        ...queryOptions,
+        // Use loader data as initial data only for the primary feed
+        ...(id === feedId && loaderData?.feedData && {
+          initialData: loaderData.feedData,
+        }),
+      };
+    }),
   });
 
-  // Debug logging to understand the data structure
-  console.log("Debug - feedData:", feedData);
-  console.log("Debug - loaderData:", loaderData);
-  console.log("Debug - feedData?.items:", feedData?.items);
+  // Aggregate articles from all selected feeds
+  const aggregatedArticles = useMemo(() => {
+    const allArticles: Array<{
+      item: any;
+      sourceFeed: { id: string; title: string };
+    }> = [];
 
-  // Use the feed items directly
-  const feedItems = feedData?.items || [];
-  const currentItem = feedItems[currentArticleIndex];
+    feedQueries.forEach((query: any, index: number) => {
+      const feedId = selectedFeedIds[index];
+      const feedData = query.data;
+      
+      if (feedData?.items) {
+        feedData.items.forEach((item: any) => {
+          allArticles.push({
+            item,
+            sourceFeed: {
+              id: feedId,
+              title: feedData.options?.title || `Feed ${feedId}`,
+            },
+          });
+        });
+      }
+    });
+
+    // Sort by date (newest first)
+    return allArticles.sort((a, b) => {
+      const dateA = new Date(a.item.date);
+      const dateB = new Date(b.item.date);
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [feedQueries, selectedFeedIds]);
+
+  // Check for errors in any feed query
+  const hasErrors = feedQueries.some((query: any) => query.error);
+  const isLoading = feedQueries.some((query: any) => query.isLoading);
+  const firstError = feedQueries.find((query: any) => query.error)?.error;
+
+  // Use aggregated articles
+  const feedItems = aggregatedArticles.map((article) => article.item);
+  const currentArticleData = aggregatedArticles[currentArticleIndex];
+  const currentItem = currentArticleData?.item;
 
   const getCategoryCount = () => {
     return currentItem?.category?.length || 0;
@@ -246,11 +286,11 @@ function ReadingLayoutContent() {
   };
 
 
-  if (error) {
+  if (hasErrors && !aggregatedArticles.length) {
     return (
       <div className="px-3 sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex items-center justify-center">
         <div className="text-center text-red-600">
-          Error loading feed: {error.message}
+          Error loading feeds: {firstError?.message || "Unknown error"}
         </div>
       </div>
     );
@@ -358,6 +398,8 @@ function ReadingLayoutContent() {
               onNavigateToPrev={handleNavigateToPrev}
               onTTSStateChange={handleTTSStateChange}
               onTTSHandlersReady={handleTTSHandlersReady}
+              sourceFeed={currentArticleData?.sourceFeed}
+              showMultiFeedIndicator={selectedFeedIds.length > 1}
             />
           </div>
         </div>
@@ -411,6 +453,8 @@ function ReadingLayoutContent() {
               onNavigateToPrev={handleNavigateToPrev}
               onTTSStateChange={handleTTSStateChange}
               onTTSHandlersReady={handleTTSHandlersReady}
+              sourceFeed={currentArticleData?.sourceFeed}
+              showMultiFeedIndicator={selectedFeedIds.length > 1}
             />
           </div>
 

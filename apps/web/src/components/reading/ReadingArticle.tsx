@@ -49,6 +49,11 @@ interface ReadingArticleProps {
     resumeTTS: () => void;
     stopTTS: () => void;
   }) => void;
+  sourceFeed?: {
+    id: string;
+    title: string;
+  };
+  showMultiFeedIndicator?: boolean;
 }
 
 export function ReadingArticle({
@@ -62,6 +67,8 @@ export function ReadingArticle({
   onNavigateToArticle,
   onTTSStateChange,
   onTTSHandlersReady,
+  sourceFeed,
+  showMultiFeedIndicator,
 }: ReadingArticleProps) {
   const navigate = useNavigate();
   const { showImages, autoAdvance, readingSpeed, textToSpeech } =
@@ -174,15 +181,15 @@ export function ReadingArticle({
   // Text-to-Speech functionality
   const extractTextContent = (articleData: ArticleItem) => {
     // Start with title
-    let textToRead = articleData.title + ". ";
+    let textToRead = item.title + ". ";
 
     // Add content if available (parsed and cleaned)
-    const contentParagraphs = parseContent(articleData.content || "");
+    const contentParagraphs = parseContent(item.content || "");
     if (contentParagraphs.length > 0) {
       textToRead += contentParagraphs.join(" ");
-    } else if (articleData.description) {
+    } else if (item.description) {
       // Fallback to description if no content
-      const cleanDescription = articleData.description
+      const cleanDescription = item.description
         .replace(/<[^>]*>/g, " ") // Remove HTML tags
         .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
@@ -456,13 +463,13 @@ export function ReadingArticle({
         {/* 1. Title */}
         <div className="text-center mb-6">
           <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-tight sm:leading-[40px] lg:leading-[50px] text-[#0A0A0A] font-Inter px-4 sm:px-0">
-            {articleData.title}
+            {item.title}
           </h1>
           {/* Source Feed Indicator (for multi-feed) */}
-          {(articleData as any)?.sourceFeed && (
+          {showMultiFeedIndicator && sourceFeed && (
             <div className="mt-3">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                from {(articleData as any).sourceFeed.title}
+                from {sourceFeed.title}
               </span>
             </div>
           )}
@@ -487,7 +494,7 @@ export function ReadingArticle({
               />
             </svg>
             <span className="text-[#737373] font-Inter text-sm sm:text-base font-normal leading-6">
-              {formatTimeAgo(articleData.date)}
+              {formatTimeAgo(item.date)}
             </span>
           </div>
 
@@ -509,34 +516,34 @@ export function ReadingArticle({
             </svg>
             <span className="text-[#737373] font-Inter text-sm sm:text-base font-medium leading-6">
               From{" "}
-              {articleData.author && articleData.author[0]
-                ? articleData.author[0].name
+              {item.author && item.author[0]
+                ? item.author[0].name
                 : "Unknown"}
             </span>
           </div>
         </div>
 
         {/* 3. Feed Image - Only show for non-background cards and if showImages is enabled */}
-        {!isBackground && showImages && getImageUrl(articleData.image) && (
+        {!isBackground && showImages && getImageUrl(item.image) && (
           <div className="mb-6 sm:mb-8 lg:mb-10 px-4 sm:px-0">
             <img
-              src={getImageUrl(articleData.image)!}
-              alt={articleData.title}
+              src={getImageUrl(item.image)!}
+              alt={item.title}
               className="w-full rounded-lg sm:rounded-xl object-cover max-h-[300px] sm:max-h-[400px] lg:max-h-[414px]"
             />
           </div>
         )}
 
         {/* 4. Content Paragraphs */}
-        {parseContent(articleData.content || "").length > 0 && (
+        {parseContent(item.content || "").length > 0 && (
           <div className="flex flex-col px-4 sm:px-0">
             {/* First paragraph with special styling */}
             <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
-              {parseContent(articleData.content || "")[0]}
+              {parseContent(item.content || "")[0]}
             </p>
 
             {/* Subsequent paragraphs */}
-            {parseContent(articleData.content || "")
+            {parseContent(item.content || "")
               .slice(1)
               .map((paragraph, index) => (
                 <p
@@ -566,14 +573,14 @@ export function ReadingArticle({
             </svg>
             <p className="text-sm sm:text-base text-[#737373] leading-[24px] text-center sm:text-left">
               Submitted by{" "}
-              {articleData.author && articleData.author[0]
-                ? articleData.author[0].name
+              {item.author && item.author[0]
+                ? item.author[0].name
                 : "Unknown"}
             </p>
           </div>
           <Button asChild className="w-full sm:w-auto touch-manipulation">
             <a
-              href={articleData.link}
+              href={item.link}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2"
@@ -599,10 +606,10 @@ export function ReadingArticle({
         </div>
 
         {/* Fallback to description if no content */}
-        {!articleData.content && articleData.description && (
+        {!item.content && item.description && (
           <div className="flex flex-col px-4 sm:px-0">
             <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
-              {articleData.description}
+              {item.description}
             </p>
           </div>
         )}
