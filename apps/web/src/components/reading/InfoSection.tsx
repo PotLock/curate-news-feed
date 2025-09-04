@@ -283,6 +283,7 @@ interface TimeSectionProps {
 
 export function TimeSection({ uploadDate }: TimeSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("All Time");
 
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -316,6 +317,20 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
     });
   };
 
+  const handlePeriodSelect = (period: string) => {
+    setSelectedPeriod(period);
+    // Here you can add logic to filter articles based on the selected period
+    console.log("Selected period:", period);
+  };
+
+  const periodOptions = [
+    "All Time",
+    "Today", 
+    "This Week",
+    "This Month",
+    "Older"
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -327,27 +342,61 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
         </button>
       </DialogTrigger>
       <DialogContent
-        className="p-2.5 gap-3 rounded-lg max-w-sm"
+        className="p-4 gap-3 rounded-lg max-w-sm"
         showCloseButton={false}
       >
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-black font-inter text-sm font-medium">
-            Published
+        <DialogHeader className="border-b-[1px] border-[#E2E8F0] pb-3">
+          <h3 
+            className="font-inter text-xs font-medium leading-normal"
+            style={{
+              color: '#000',
+              fontFamily: 'Inter',
+              fontSize: '12px',
+              fontStyle: 'normal',
+              fontWeight: 500,
+              lineHeight: 'normal'
+            }}
+          >
+            Period
           </h3>
-        </div>
+        </DialogHeader>
 
-        {/* Date and Time Details */}
-        <div className="flex flex-col gap-2">
-          <div className="text-black font-inter text-base font-medium">
-            {getFormattedDate(uploadDate)}
-          </div>
-          <div className="text-gray-600 font-inter text-sm">
-            at {getFormattedTime(uploadDate)}
-          </div>
-          <div className="text-gray-500 font-inter text-xs mt-2">
-            {getRelativeTime(uploadDate)}
-          </div>
+        {/* Period Selection Options */}
+        <div className="flex flex-col" style={{ gap: '12px' }}>
+          {periodOptions.map((period) => (
+            <div key={period} className="flex items-center" style={{ gap: '12px' }}>
+              {/* Calendar Icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M5.33333 1.33325V3.99992M10.6667 1.33325V3.99992M2 6.66659H14M5.33333 9.33325H5.34M8 9.33325H8.00667M10.6667 9.33325H10.6733M5.33333 11.9999H5.34M8 11.9999H8.00667M10.6667 11.9999H10.6733M3.33333 2.66659H12.6667C13.403 2.66659 14 3.26354 14 3.99992V13.3333C14 14.0696 13.403 14.6666 12.6667 14.6666H3.33333C2.59695 14.6666 2 14.0696 2 13.3333V3.99992C2 3.26354 2.59695 2.66659 3.33333 2.66659Z" stroke="#09090B" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              
+              {period === "All Time" ? (
+                /* Checkbox for "All Time" */
+                <>
+                  <Checkbox
+                    checked={selectedPeriod === period}
+                    onCheckedChange={() => handlePeriodSelect(period)}
+                  />
+                  <span className="text-foreground font-inter text-sm">
+                    {period}
+                  </span>
+                </>
+              ) : (
+                /* Clickable button for other options */
+                <button
+                  onClick={() => handlePeriodSelect(period)}
+                  className={`text-left font-inter text-sm transition-colors ${
+                    selectedPeriod === period 
+                      ? "text-foreground font-medium" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {period}
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       </DialogContent>
     </Dialog>
