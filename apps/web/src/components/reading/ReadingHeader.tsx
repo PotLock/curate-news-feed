@@ -36,7 +36,7 @@ export function ReadingHeader({
   } = useReadingSettings();
 
   return (
-    <div className="w-full flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+    <div className="w-full flex flex-col md:flex-row items-center justify-between mb-4 sm:mb-6 lg:mb-8">
       {/* Close Button */}
       <Link
         to="/$feedId"
@@ -54,7 +54,42 @@ export function ReadingHeader({
           <Divider />
           <TimeSection uploadDate={uploadDate} />
           <Divider />
-          <AuthorSection authorName={authorName} />
+          <AuthorSection />
+          <Divider />
+          <ReadingSettingsDialog
+            isOpen={isSettingsOpen}
+            onOpenChange={setIsSettingsOpen}
+            readingSpeed={[readingSpeed]}
+            onReadingSpeedChange={(value) =>
+              updateSettings({ readingSpeed: value[0] })
+            }
+            autoAdvance={autoAdvance}
+            onAutoAdvanceChange={(value) =>
+              updateSettings({ autoAdvance: value })
+            }
+            textToSpeech={textToSpeech}
+            onTextToSpeechChange={(value) =>
+              updateSettings({ textToSpeech: value })
+            }
+            voiceSettings={!!selectedVoice}
+            onVoiceSettingsChange={(value) =>
+              updateSettings({ selectedVoice: value ? "default" : "" })
+            }
+            showImages={showImages}
+            onShowImagesChange={(value) =>
+              updateSettings({ showImages: value })
+            }
+            readingReminders={false}
+            onReadingRemindersChange={() => {}}
+            weeklyDigest={false}
+            onWeeklyDigestChange={() => {}}
+            analytics={analytics}
+            onAnalyticsChange={(value) => updateSettings({ analytics: value })}
+            personalizedRecommendations={personalizedRecommendations}
+            onPersonalizedRecommendationsChange={(value) =>
+              updateSettings({ personalizedRecommendations: value })
+            }
+          />
         </div>
 
         {/* Desktop Layout - Full */}
@@ -63,7 +98,7 @@ export function ReadingHeader({
           <Divider />
           <TimeSection uploadDate={uploadDate} />
           <Divider />
-          <AuthorSection authorName={authorName} />
+          <AuthorSection />
           <Divider />
           <ReadingSettingsDialog
             isOpen={isSettingsOpen}
@@ -102,43 +137,8 @@ export function ReadingHeader({
         </div>
       </div>
 
-      {/* Empty div for layout balance - hidden on mobile */}
-      <div className="w-[37px] hidden sm:block"></div>
-      {/* Mobile settings access */}
-      <div className="sm:hidden">
-        <ReadingSettingsDialog
-          isOpen={isSettingsOpen}
-          onOpenChange={setIsSettingsOpen}
-          readingSpeed={[readingSpeed]}
-          onReadingSpeedChange={(value) =>
-            updateSettings({ readingSpeed: value[0] })
-          }
-          autoAdvance={autoAdvance}
-          onAutoAdvanceChange={(value) =>
-            updateSettings({ autoAdvance: value })
-          }
-          textToSpeech={textToSpeech}
-          onTextToSpeechChange={(value) =>
-            updateSettings({ textToSpeech: value })
-          }
-          voiceSettings={!!selectedVoice}
-          onVoiceSettingsChange={(value) =>
-            updateSettings({ selectedVoice: value ? "default" : "" })
-          }
-          showImages={showImages}
-          onShowImagesChange={(value) => updateSettings({ showImages: value })}
-          readingReminders={false}
-          onReadingRemindersChange={() => {}}
-          weeklyDigest={false}
-          onWeeklyDigestChange={() => {}}
-          analytics={analytics}
-          onAnalyticsChange={(value) => updateSettings({ analytics: value })}
-          personalizedRecommendations={personalizedRecommendations}
-          onPersonalizedRecommendationsChange={(value) =>
-            updateSettings({ personalizedRecommendations: value })
-          }
-        />
-      </div>
+      {/* Empty div for layout balance */}
+      <div className="w-[37px]"></div>
     </div>
   );
 }

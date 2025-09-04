@@ -4,8 +4,8 @@ import { ReadingHeader } from "@/components/reading/ReadingHeader";
 import { ReadingArticle } from "@/components/reading/ReadingArticle";
 import { ReadingActions } from "@/components/reading/ReadingActions";
 import { Button } from "@/components/ui/button";
-import { ReadingSettingsProvider } from "@/contexts/reading-settings-context";
-import { useState, useEffect } from "react";
+import { ReadingSettingsProvider, useReadingSettings } from "@/contexts/reading-settings-context";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // Function to generate slug from title
 const generateSlug = (title: string): string => {
@@ -46,9 +46,18 @@ export const Route = createFileRoute("/reading/$feedId/")({
 });
 
 function ReadingLayoutPage() {
+  return (
+    <ReadingSettingsProvider>
+      <ReadingLayoutContent />
+    </ReadingSettingsProvider>
+  );
+}
+
+function ReadingLayoutContent() {
   const { feedId } = Route.useParams();
   const { trpc } = Route.useRouteContext();
   const search = Route.useSearch();
+  const { textToSpeech } = useReadingSettings();
 
   const loaderData = Route.useLoaderData();
 
@@ -56,6 +65,16 @@ function ReadingLayoutPage() {
   const [currentArticleIndex, setCurrentArticleIndex] = useState(
     search.article || 0
   );
+
+  // TTS state and handlers
+  const [isTTSPlaying, setIsTTSPlaying] = useState(false);
+  const [isTTSPaused, setIsTTSPaused] = useState(false);
+  const ttsHandlersRef = useRef<{
+    startTTS: () => void;
+    pauseTTS: () => void;
+    resumeTTS: () => void;
+    stopTTS: () => void;
+  } | null>(null);
 
   // Update current article index when search param changes
   useEffect(() => {
@@ -140,6 +159,34 @@ function ReadingLayoutPage() {
     setCurrentArticleIndex(0);
   };
 
+  // TTS handlers
+  const handleTTSStateChange = (isPlaying: boolean, isPaused: boolean) => {
+    setIsTTSPlaying(isPlaying);
+    setIsTTSPaused(isPaused);
+  };
+
+  const handleTTSHandlersReady = useCallback((handlers: {
+    startTTS: () => void;
+    pauseTTS: () => void;
+    resumeTTS: () => void;
+    stopTTS: () => void;
+  }) => {
+    ttsHandlersRef.current = handlers;
+  }, []);
+
+  const handleTTSToggle = () => {
+    if (!ttsHandlersRef.current) return;
+
+    if (!isTTSPlaying) {
+      ttsHandlersRef.current.startTTS();
+    } else if (isTTSPaused) {
+      ttsHandlersRef.current.resumeTTS();
+    } else {
+      ttsHandlersRef.current.pauseTTS();
+    }
+  };
+
+
   if (error) {
     return (
       <div className="px-3 sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] flex items-center justify-center">
@@ -171,8 +218,7 @@ function ReadingLayoutPage() {
   }
 
   return (
-    <ReadingSettingsProvider>
-      <div className="h-screen overflow-hidden flex flex-col px-3 max-w-screen sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] items-center">
+    <div className="h-screen overflow-hidden flex flex-col px-3 max-w-screen sm:px-6 md:px-8 lg:px-[258px] py-3 sm:py-6 md:py-8 lg:py-[58px] items-center">
         {/* Fixed Header */}
         <div className="flex-shrink-0 w-full">
           <ReadingHeader
@@ -186,7 +232,7 @@ function ReadingLayoutPage() {
         {/* Mobile Layout */}
         <div className="flex flex-col lg:hidden w-full max-w-4xl flex-1 min-h-0">
           {/* Mobile Progress Bar - Fixed */}
-          <div className="flex-shrink-0 mb-6">
+          <div className="flex-shrink-0 mb-4">
             <div className="flex items-center justify-between px-4 py-3 bg-[#FFFFFFF2] border-[0.667px] border-[#E5E5E5] rounded-[12px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)]">
               <span className="text-sm font-bold leading-[20px] font-Inter">
                 {currentIndex}/{totalCount}
@@ -221,6 +267,18 @@ function ReadingLayoutPage() {
             </div>
           </div>
 
+          {/* Mobile Actions - Below Progress Bar */}
+          <div className="flex-shrink-0 mb-6">
+            <div className="flex justify-center">
+              <ReadingActions
+                articleTitle={currentItem.title}
+                articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem.title)}`}
+                articleId={currentItem.id || currentItem.title}
+                feedId={feedId}
+              />
+            </div>
+          </div>
+
           {/* Scrollable Article Container */}
           <div className="flex-1 min-h-0 flex items-center justify-center">
             <ReadingArticle
@@ -231,19 +289,9 @@ function ReadingLayoutPage() {
               generateSlug={generateSlug}
               onNavigateToNext={handleNavigateToNext}
               onNavigateToPrev={handleNavigateToPrev}
+              onTTSStateChange={handleTTSStateChange}
+              onTTSHandlersReady={handleTTSHandlersReady}
             />
-          </div>
-
-          {/* Mobile Actions - Fixed */}
-          <div className="flex-shrink-0 mt-6">
-            <div className="flex justify-center">
-              <ReadingActions
-                articleTitle={currentItem.title}
-                articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem.title)}`}
-                articleId={currentItem.id || currentItem.title}
-                feedId={feedId}
-              />
-            </div>
           </div>
         </div>
 
@@ -294,6 +342,8 @@ function ReadingLayoutPage() {
               generateSlug={generateSlug}
               onNavigateToNext={handleNavigateToNext}
               onNavigateToPrev={handleNavigateToPrev}
+              onTTSStateChange={handleTTSStateChange}
+              onTTSHandlersReady={handleTTSHandlersReady}
             />
           </div>
 
@@ -307,8 +357,160 @@ function ReadingLayoutPage() {
             />
           </div>
         </div>
+
+        {/* Fixed Bottom Navigation */}
+        <div className="fixed bottom-[30px] left-1/2 transform -translate-x-1/2 z-50">
+          <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90 shadow-lg">
+            <div className="flex items-center gap-[16px] sm:gap-[28px]">
+              {/* Previous Button */}
+              {prevItem ? (
+                <Button
+                  onClick={handleNavigateToPrev}
+                  variant={"secondary"}
+                  className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-black text-sm sm:text-base touch-manipulation"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 17 17"
+                    fill="none"
+                    className="sm:w-[17px] sm:h-[17px]"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M15.6667 4.78424C15.6667 4.02631 15.3372 3.36602 14.8193 2.98819C14.2878 2.60048 13.5719 2.53052 12.9476 2.96051L12.9418 2.96454L9.66683 5.36036V5.24871C9.66683 4.55819 9.35173 3.95996 8.86398 3.6203C8.36667 3.27399 7.70102 3.21213 7.118 3.59546L2.17304 6.84678C1.59283 7.22827 1.3335 7.88812 1.3335 8.50003C1.3335 9.11194 1.59283 9.77178 2.17304 10.1533L7.118 13.4046C7.70101 13.7879 8.36667 13.7261 8.86398 13.3798C9.35173 13.0401 9.66683 12.4419 9.66683 11.7513V11.6397L12.9418 14.0355L12.9476 14.0395C13.5719 14.4695 14.2878 14.3996 14.8193 14.0119C15.3372 13.634 15.6667 12.9737 15.6667 12.2158L15.6667 4.78424ZM9.66683 10.4007L13.5201 13.2195C13.7625 13.3838 14.0123 13.3628 14.2299 13.204C14.4626 13.0342 14.6667 12.6895 14.6667 12.2158L14.6667 4.78424C14.6667 4.31058 14.4626 3.96584 14.2299 3.79606C14.0123 3.63729 13.7625 3.61622 13.5201 3.78052L9.66683 6.59939L9.66683 10.4007ZM7.66739 4.43103C7.88034 4.29102 8.10175 4.30808 8.29252 4.44093C8.49284 4.58043 8.66683 4.8616 8.66683 5.24871L8.66683 11.7513C8.66683 12.1385 8.49284 12.4196 8.29252 12.5591C8.10175 12.692 7.88034 12.709 7.66739 12.569L2.72243 9.31771C2.48366 9.16071 2.3335 8.85434 2.3335 8.50003C2.3335 8.14572 2.48366 7.83934 2.72243 7.68235L7.66739 4.43103Z"
+                      fill="#1C274C"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">Previous</span>
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  variant={"secondary"}
+                  className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-gray-400 opacity-50 text-sm sm:text-base"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 17 17"
+                    fill="none"
+                    className="sm:w-[17px] sm:h-[17px]"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M15.6667 4.78424C15.6667 4.02631 15.3372 3.36602 14.8193 2.98819C14.2878 2.60048 13.5719 2.53052 12.9476 2.96051L12.9418 2.96454L9.66683 5.36036V5.24871C9.66683 4.55819 9.35173 3.95996 8.86398 3.6203C8.36667 3.27399 7.70102 3.21213 7.118 3.59546L2.17304 6.84678C1.59283 7.22827 1.3335 7.88812 1.3335 8.50003C1.3335 9.11194 1.59283 9.77178 2.17304 10.1533L7.118 13.4046C7.70101 13.7879 8.36667 13.7261 8.86398 13.3798C9.35173 13.0401 9.66683 12.4419 9.66683 11.7513V11.6397L12.9418 14.0355L12.9476 14.0395C13.5719 14.4695 14.2878 14.3996 14.8193 14.0119C15.3372 13.634 15.6667 12.9737 15.6667 12.2158L15.6667 4.78424ZM9.66683 10.4007L13.5201 13.2195C13.7625 13.3838 14.0123 13.3628 14.2299 13.204C14.4626 13.0342 14.6667 12.6895 14.6667 12.2158L14.6667 4.78424C14.6667 4.31058 14.4626 3.96584 14.2299 3.79606C14.0123 3.63729 13.7625 3.61622 13.5201 3.78052L9.66683 6.59939L9.66683 10.4007ZM7.66739 4.43103C7.88034 4.29102 8.10175 4.30808 8.29252 4.44093C8.49284 4.58043 8.66683 4.8616 8.66683 5.24871L8.66683 11.7513C8.66683 12.1385 8.49284 12.4196 8.29252 12.5591C8.10175 12.692 7.88034 12.709 7.66739 12.569L2.72243 9.31771C2.48366 9.16071 2.3335 8.85434 2.3335 8.50003C2.3335 8.14572 2.48366 7.83934 2.72243 7.68235L7.66739 4.43103Z"
+                      fill="#9CA3AF"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">Previous</span>
+                </Button>
+              )}
+
+              {/* TTS Play/Pause Button - Only show if textToSpeech is enabled in settings */}
+              {textToSpeech && (
+                <Button
+                  onClick={handleTTSToggle}
+                  variant={"outline"}
+                  className="flex h-[32px] sm:h-[36px] min-w-[32px] sm:min-w-[36px] px-[8px] sm:px-[10px] py-[6px] sm:py-[8px] justify-center items-center rounded-2xl sm:rounded-3xl text-black text-sm sm:text-base touch-manipulation"
+                >
+                  {!isTTSPlaying || isTTSPaused ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="21"
+                      height="21"
+                      viewBox="0 0 21 21"
+                      fill="none"
+                      className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]"
+                    >
+                      <path
+                        d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
+                        stroke="#1C274C"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="sm:w-[16px] sm:h-[16px]"
+                    >
+                      <path
+                        d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  )}
+                </Button>
+              )}
+
+              {/* Next Button */}
+              {nextItem ? (
+                <Button
+                  onClick={handleNavigateToNext}
+                  className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-black text-white hover:bg-gray-800 text-sm sm:text-base touch-manipulation"
+                >
+                  <span className="hidden sm:inline">Next Article</span>
+                  <span className="sm:hidden">Next</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 17 17"
+                    fill="none"
+                    className="sm:w-[17px] sm:h-[17px]"
+                  >
+                    <path
+                      d="M7.83334 6.34565L3.76891 3.37227C2.90059 2.77417 1.8335 3.55265 1.8335 4.78423L1.8335 12.2158C1.8335 13.4474 2.90059 14.2259 3.76891 13.6278L7.83334 10.6544"
+                      stroke="white"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M14.5526 7.26452C15.3716 7.803 15.3716 9.19696 14.5526 9.73544L9.60763 12.9868C8.81167 13.5101 7.8335 12.8289 7.8335 11.7513L7.8335 5.24866C7.8335 4.17103 8.81167 3.48986 9.60763 4.0132L14.5526 7.26452Z"
+                      stroke="white"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-gray-400 text-gray-300 opacity-50 text-sm sm:text-base"
+                >
+                  <span className="hidden sm:inline">Next Article</span>
+                  <span className="sm:hidden">Next</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 17 17"
+                    fill="none"
+                    className="sm:w-[17px] sm:h-[17px]"
+                  >
+                    <path
+                      d="M7.83334 6.34565L3.76891 3.37227C2.90059 2.77417 1.8335 3.55265 1.8335 4.78423L1.8335 12.2158C1.8335 13.4474 2.90059 14.2259 3.76891 13.6278L7.83334 10.6544"
+                      stroke="#9CA3AF"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M14.5526 7.26452C15.3716 7.803 15.3716 9.19696 14.5526 9.73544L9.60763 12.9868C8.81167 13.5101 7.8335 12.8289 7.8335 11.7513L7.8335 5.24866C7.8335 4.17103 8.81167 3.48986 9.60763 4.0132L14.5526 7.26452Z"
+                      stroke="#9CA3AF"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-    </ReadingSettingsProvider>
   );
 }
 

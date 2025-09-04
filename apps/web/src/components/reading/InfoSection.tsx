@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { CategoriesIcon, ClockIcon, UserIcon } from "./icons";
 
 interface InfoSectionProps {
@@ -62,17 +63,16 @@ export function TimeSection({ uploadDate }: TimeSectionProps) {
   );
 }
 
-interface AuthorSectionProps {
-  authorName?: string;
-}
-
-export function AuthorSection({ authorName }: AuthorSectionProps) {
+export function AuthorSection() {
   return (
-    <InfoSection icon={<UserIcon />}>
-      <span className="text-[#27272A] text-center font-inter text-sm font-medium leading-5">
-        {authorName || "Unknown"}
-      </span>
-    </InfoSection>
+    <Link
+      to="/profile"
+      className="hover:opacity-70 transition-opacity"
+    >
+      <InfoSection icon={<UserIcon />}>
+        <span className="sr-only">Go to profile</span>
+      </InfoSection>
+    </Link>
   );
 }
 

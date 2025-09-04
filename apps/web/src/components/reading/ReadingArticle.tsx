@@ -42,6 +42,13 @@ interface ReadingArticleProps {
   onNavigateToNext?: () => void;
   onNavigateToPrev?: () => void;
   onNavigateToArticle?: (item: ArticleItem) => void; // Keep for backward compatibility
+  onTTSStateChange?: (isPlaying: boolean, isPaused: boolean) => void;
+  onTTSHandlersReady?: (handlers: {
+    startTTS: () => void;
+    pauseTTS: () => void;
+    resumeTTS: () => void;
+    stopTTS: () => void;
+  }) => void;
 }
 
 export function ReadingArticle({
@@ -53,6 +60,8 @@ export function ReadingArticle({
   onNavigateToNext,
   onNavigateToPrev,
   onNavigateToArticle,
+  onTTSStateChange,
+  onTTSHandlersReady,
 }: ReadingArticleProps) {
   const navigate = useNavigate();
   const { showImages, autoAdvance, readingSpeed, textToSpeech } =
@@ -76,6 +85,11 @@ export function ReadingArticle({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSPaused, setIsTTSPaused] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Notify parent of TTS state changes
+  useEffect(() => {
+    onTTSStateChange?.(isPlaying, isTTSPaused);
+  }, [isPlaying, isTTSPaused, onTTSStateChange]);
 
   // Auto-advance functionality
   const startAutoAdvance = () => {
@@ -253,6 +267,16 @@ export function ReadingArticle({
       }
     };
   }, [item.id]);
+
+  // Provide TTS handlers to parent
+  useEffect(() => {
+    onTTSHandlersReady?.({
+      startTTS: startTextToSpeech,
+      pauseTTS: pauseTextToSpeech,
+      resumeTTS: resumeTextToSpeech,
+      stopTTS: stopTextToSpeech,
+    });
+  }, [onTTSHandlersReady]);
 
   // Save like/dislike preference to localStorage
   const saveLikeDislikePreference = async (liked: boolean) => {
@@ -723,222 +747,6 @@ export function ReadingArticle({
         </AnimatePresence>
       </div>
 
-      {/* Navigation Section */}
-      <motion.div
-        className="flex w-full max-w-[660px] px-4 sm:px-[60px] lg:px-[120px] py-[16px] sm:py-[21px] flex-col items-center gap-[10px] rounded-b-[12px] sm:rounded-b-[16px] mt-6 relative"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: isTransitioning ? 0.5 : 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        style={{ zIndex: 20 }}
-      >
-        <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90 shadow-lg">
-          <div className="flex items-center gap-[16px] sm:gap-[28px]">
-            {/* Previous Button */}
-            {prevItem ? (
-              <Button
-                asChild
-                variant={"secondary"}
-                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-black text-sm sm:text-base touch-manipulation"
-              >
-                <Link
-                  to="/reading/$feedId/$slug"
-                  params={{ feedId, slug: generateSlug(prevItem.title) }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 17 17"
-                    fill="none"
-                    className="sm:w-[17px] sm:h-[17px]"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M15.6667 4.78424C15.6667 4.02631 15.3372 3.36602 14.8193 2.98819C14.2878 2.60048 13.5719 2.53052 12.9476 2.96051L12.9418 2.96454L9.66683 5.36036V5.24871C9.66683 4.55819 9.35173 3.95996 8.86398 3.6203C8.36667 3.27399 7.70102 3.21213 7.118 3.59546L2.17304 6.84678C1.59283 7.22827 1.3335 7.88812 1.3335 8.50003C1.3335 9.11194 1.59283 9.77178 2.17304 10.1533L7.118 13.4046C7.70101 13.7879 8.36667 13.7261 8.86398 13.3798C9.35173 13.0401 9.66683 12.4419 9.66683 11.7513V11.6397L12.9418 14.0355L12.9476 14.0395C13.5719 14.4695 14.2878 14.3996 14.8193 14.0119C15.3372 13.634 15.6667 12.9737 15.6667 12.2158L15.6667 4.78424ZM9.66683 10.4007L13.5201 13.2195C13.7625 13.3838 14.0123 13.3628 14.2299 13.204C14.4626 13.0342 14.6667 12.6895 14.6667 12.2158L14.6667 4.78424C14.6667 4.31058 14.4626 3.96584 14.2299 3.79606C14.0123 3.63729 13.7625 3.61622 13.5201 3.78052L9.66683 6.59939L9.66683 10.4007ZM7.66739 4.43103C7.88034 4.29102 8.10175 4.30808 8.29252 4.44093C8.49284 4.58043 8.66683 4.8616 8.66683 5.24871L8.66683 11.7513C8.66683 12.1385 8.49284 12.4196 8.29252 12.5591C8.10175 12.692 7.88034 12.709 7.66739 12.569L2.72243 9.31771C2.48366 9.16071 2.3335 8.85434 2.3335 8.50003C2.3335 8.14572 2.48366 7.83934 2.72243 7.68235L7.66739 4.43103Z"
-                      fill="#1C274C"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">Previous</span>
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                disabled
-                variant={"secondary"}
-                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl text-gray-400 opacity-50 text-sm sm:text-base"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 17 17"
-                  fill="none"
-                  className="sm:w-[17px] sm:h-[17px]"
-                >
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M15.6667 4.78424C15.6667 4.02631 15.3372 3.36602 14.8193 2.98819C14.2878 2.60048 13.5719 2.53052 12.9476 2.96051L12.9418 2.96454L9.66683 5.36036V5.24871C9.66683 4.55819 9.35173 3.95996 8.86398 3.6203C8.36667 3.27399 7.70102 3.21213 7.118 3.59546L2.17304 6.84678C1.59283 7.22827 1.3335 7.88812 1.3335 8.50003C1.3335 9.11194 1.59283 9.77178 2.17304 10.1533L7.118 13.4046C7.70101 13.7879 8.36667 13.7261 8.86398 13.3798C9.35173 13.0401 9.66683 12.4419 9.66683 11.7513V11.6397L12.9418 14.0355L12.9476 14.0395C13.5719 14.4695 14.2878 14.3996 14.8193 14.0119C15.3372 13.634 15.6667 12.9737 15.6667 12.2158L15.6667 4.78424ZM9.66683 10.4007L13.5201 13.2195C13.7625 13.3838 14.0123 13.3628 14.2299 13.204C14.4626 13.0342 14.6667 12.6895 14.6667 12.2158L14.6667 4.78424C14.6667 4.31058 14.4626 3.96584 14.2299 3.79606C14.0123 3.63729 13.7625 3.61622 13.5201 3.78052L9.66683 6.59939L9.66683 10.4007ZM7.66739 4.43103C7.88034 4.29102 8.10175 4.30808 8.29252 4.44093C8.49284 4.58043 8.66683 4.8616 8.66683 5.24871L8.66683 11.7513C8.66683 12.1385 8.49284 12.4196 8.29252 12.5591C8.10175 12.692 7.88034 12.709 7.66739 12.569L2.72243 9.31771C2.48366 9.16071 2.3335 8.85434 2.3335 8.50003C2.3335 8.14572 2.48366 7.83934 2.72243 7.68235L7.66739 4.43103Z"
-                    fill="#9CA3AF"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Previous</span>
-              </Button>
-            )}
-
-            {/* Text-to-Speech Play/Pause/Stop Button - Only show when TTS is enabled */}
-            {textToSpeech && (
-              <Button
-                onClick={() => {
-                  if (!isPlaying) {
-                    startTextToSpeech();
-                  } else if (isTTSPaused) {
-                    resumeTextToSpeech();
-                  } else {
-                    pauseTextToSpeech();
-                  }
-                }}
-                className={`flex p-[10px] sm:p-[14px] items-center gap-[10px] rounded-full border-[0.667px] border-[#E5E5E5] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] touch-manipulation transition-colors ${
-                  isPlaying
-                    ? "bg-blue-50 hover:bg-blue-100"
-                    : "bg-white hover:bg-gray-50"
-                }`}
-              >
-                {!isPlaying ? (
-                  // Play icon
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 21 21"
-                    fill="none"
-                    className="sm:w-[21px] sm:h-[21px]"
-                  >
-                    <path
-                      d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
-                      stroke={isPlaying ? "#2563EB" : "#1C274C"}
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                ) : isTTSPaused ? (
-                  // Play icon (to resume)
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 21 21"
-                    fill="none"
-                    className="sm:w-[21px] sm:h-[21px]"
-                  >
-                    <path
-                      d="M17.5071 8.29384C19.2754 9.25541 19.2754 11.7446 17.5071 12.7062L6.83051 18.5121C5.11196 19.4467 3 18.2303 3 16.3059L3 4.6941C3 2.76976 5.11196 1.55337 6.83051 2.48792L17.5071 8.29384Z"
-                      stroke="#2563EB"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                ) : (
-                  // Pause icon
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="sm:w-[21px] sm:h-[21px]"
-                  >
-                    <rect x="6" y="4" width="4" height="16" fill="#2563EB" />
-                    <rect x="14" y="4" width="4" height="16" fill="#2563EB" />
-                  </svg>
-                )}
-              </Button>
-            )}
-
-            {/* Stop Button - Only show when TTS enabled and playing */}
-            {textToSpeech && isPlaying && (
-              <Button
-                onClick={stopTextToSpeech}
-                variant="ghost"
-                size="sm"
-                className="flex p-2 items-center rounded-full hover:bg-red-50 touch-manipulation"
-                title="Stop reading"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <rect x="6" y="6" width="12" height="12" fill="#DC2626" />
-                </svg>
-              </Button>
-            )}
-
-            {/* Next Button */}
-            {nextItem ? (
-              <Button
-                asChild
-                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-black text-white hover:bg-gray-800 text-sm sm:text-base touch-manipulation"
-              >
-                <Link
-                  to="/reading/$feedId/$slug"
-                  params={{ feedId, slug: generateSlug(nextItem.title) }}
-                >
-                  <span className="hidden sm:inline">Next Article</span>
-                  <span className="sm:hidden">Next</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 17 17"
-                    fill="none"
-                    className="sm:w-[17px] sm:h-[17px]"
-                  >
-                    <path
-                      d="M7.83334 6.34565L3.76891 3.37227C2.90059 2.77417 1.8335 3.55265 1.8335 4.78423L1.8335 12.2158C1.8335 13.4474 2.90059 14.2259 3.76891 13.6278L7.83334 10.6544"
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M14.5526 7.26452C15.3716 7.803 15.3716 9.19696 14.5526 9.73544L9.60763 12.9868C8.81167 13.5101 7.8335 12.8289 7.8335 11.7513L7.8335 5.24866C7.8335 4.17103 8.81167 3.48986 9.60763 4.0132L14.5526 7.26452Z"
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                disabled
-                className="flex h-[32px] sm:h-[36px] min-w-[60px] sm:min-w-[80px] px-[8px] sm:px-[12px] py-[6px] sm:py-[8px] justify-center items-center gap-1 rounded-2xl sm:rounded-3xl bg-gray-400 text-gray-300 opacity-50 text-sm sm:text-base"
-              >
-                <span className="hidden sm:inline">Next Article</span>
-                <span className="sm:hidden">Next</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 17 17"
-                  fill="none"
-                  className="sm:w-[17px] sm:h-[17px]"
-                >
-                  <path
-                    d="M7.83334 6.34565L3.76891 3.37227C2.90059 2.77417 1.8335 3.55265 1.8335 4.78423L1.8335 12.2158C1.8335 13.4474 2.90059 14.2259 3.76891 13.6278L7.83334 10.6544"
-                    stroke="#9CA3AF"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M14.5526 7.26452C15.3716 7.803 15.3716 9.19696 14.5526 9.73544L9.60763 12.9868C8.81167 13.5101 7.8335 12.8289 7.8335 11.7513L7.8335 5.24866C7.8335 4.17103 8.81167 3.48986 9.60763 4.0132L14.5526 7.26452Z"
-                    stroke="#9CA3AF"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              </Button>
-            )}
-          </div>
-        </div>
-      </motion.div>
     </div>
   );
 }
