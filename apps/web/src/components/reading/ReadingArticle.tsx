@@ -574,7 +574,7 @@ export function ReadingArticle({
               {item.author && item.author[0] ? item.author[0].name : "Unknown"}
             </p>
           </div>
-          <Button asChild className="w-full sm:w-auto touch-manipulation">
+          <Button asChild className="w-full sm:w-auto touch-manipulation relative z-40">
             <a
               href={item.link}
               target="_blank"
@@ -637,7 +637,7 @@ export function ReadingArticle({
 
   return (
     <div
-      className="h-full overflow-y-auto w-full max-w-[660px]"
+      className="h-full overflow-y-auto w-full max-w-[660px] pb-[70px] sm:pb-0"
       style={{ perspective: "1000px" }}
     >
       {/* Card Container - Stationary */}
