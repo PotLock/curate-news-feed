@@ -388,12 +388,13 @@ function ReadingLayoutContent() {
           }
         </p>
         {isFilteringActive ? (
-          <button
+          <Button
             onClick={() => handlePeriodChange("All Time")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            variant="default"
+            className="inline-flex items-center gap-2"
           >
             Reset Filters
-          </button>
+          </Button>
         ) : (
           <Link
             to="/$feedId"
