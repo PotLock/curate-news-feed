@@ -24,9 +24,10 @@ function InfoSection({ icon, children }: InfoSectionProps) {
 interface CategoriesSectionProps {
   count: number;
   currentFeedId?: string;
+  onFeedSelectionChange?: (selectedFeedIds: string[]) => void;
 }
 
-export function CategoriesSection({ count, currentFeedId }: CategoriesSectionProps) {
+export function CategoriesSection({ count, currentFeedId, onFeedSelectionChange }: CategoriesSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const trpc = useTRPC();
   
@@ -42,15 +43,45 @@ export function CategoriesSection({ count, currentFeedId }: CategoriesSectionPro
     checked: boolean;
   }>>([]);
 
+  // Load saved feed selections from localStorage
+  const loadSavedFeedSelections = () => {
+    try {
+      const accountId = "anonymous-user"; // This matches the pattern used in ReadingActions
+      const savedKey = `selected-feeds-${accountId}`;
+      const savedSelections = localStorage.getItem(savedKey);
+      
+      if (savedSelections) {
+        const selectedFeedIds = JSON.parse(savedSelections);
+        return selectedFeedIds;
+      }
+    } catch (error) {
+      console.warn("Failed to load saved feed selections:", error);
+    }
+    return [currentFeedId]; // Default to current feed if no saved selections
+  };
+
+  // Save feed selections to localStorage
+  const saveFeedSelections = (selectedFeedIds: string[]) => {
+    try {
+      const accountId = "anonymous-user";
+      const savedKey = `selected-feeds-${accountId}`;
+      localStorage.setItem(savedKey, JSON.stringify(selectedFeedIds));
+    } catch (error) {
+      console.warn("Failed to save feed selections:", error);
+    }
+  };
+
   // Update feed states when feedsData changes
   useEffect(() => {
     if (feedsData?.items) {
+      const savedSelections = loadSavedFeedSelections();
+      
       setFeedStates(
         feedsData.items.map((feed: any) => ({
           id: feed.id,
           name: feed.title || 'Untitled Feed',
           description: feed.description || `Feed containing ${feed.items?.length || 0} articles`,
-          checked: feed.id === currentFeedId, // Only current feed is selected by default
+          checked: savedSelections.includes(feed.id),
         }))
       );
     }
@@ -73,12 +104,38 @@ export function CategoriesSection({ count, currentFeedId }: CategoriesSectionPro
   };
 
   const handleSaveSettings = () => {
-    // Save settings logic here
+    const selectedFeedIds = feedStates
+      .filter(feed => feed.checked)
+      .map(feed => feed.id);
+    
+    // Ensure at least one feed is selected
+    if (selectedFeedIds.length === 0) {
+      // Re-select current feed if nothing is selected
+      const updatedStates = feedStates.map(feed => ({
+        ...feed,
+        checked: feed.id === currentFeedId
+      }));
+      setFeedStates(updatedStates);
+      saveFeedSelections([currentFeedId || ""]);
+      onFeedSelectionChange?.([currentFeedId || ""]);
+    } else {
+      // Save the current selections
+      saveFeedSelections(selectedFeedIds);
+      onFeedSelectionChange?.(selectedFeedIds);
+    }
+    
     setIsOpen(false);
   };
 
   const handleCancel = () => {
-    // Reset to original state or close without saving
+    // Reset to saved state without making changes
+    const savedSelections = loadSavedFeedSelections();
+    setFeedStates(prevStates => 
+      prevStates.map(feed => ({
+        ...feed,
+        checked: savedSelections.includes(feed.id)
+      }))
+    );
     setIsOpen(false);
   };
 

@@ -15,6 +15,7 @@ interface ReadingHeaderProps {
   categoryCount: number;
   uploadDate: string;
   authorName?: string;
+  onFeedSelectionChange?: (selectedFeedIds: string[]) => void;
 }
 
 export function ReadingHeader({
@@ -22,6 +23,7 @@ export function ReadingHeader({
   categoryCount,
   uploadDate,
   authorName,
+  onFeedSelectionChange,
 }: ReadingHeaderProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
@@ -50,7 +52,11 @@ export function ReadingHeader({
       <div className="reading-header-container">
         {/* Mobile Layout - Simplified */}
         <div className="flex sm:hidden items-center px-[8px] py-[6px] gap-[8px]">
-          <CategoriesSection count={categoryCount} currentFeedId={feedId} />
+          <CategoriesSection 
+            count={categoryCount} 
+            currentFeedId={feedId}
+            onFeedSelectionChange={onFeedSelectionChange}
+          />
           <Divider />
           <TimeSection uploadDate={uploadDate} />
           <Divider />
@@ -94,7 +100,11 @@ export function ReadingHeader({
 
         {/* Desktop Layout - Full */}
         <div className="hidden sm:flex items-center px-[10px] py-[6px] gap-[10px]">
-          <CategoriesSection count={categoryCount} currentFeedId={feedId} />
+          <CategoriesSection 
+            count={categoryCount} 
+            currentFeedId={feedId}
+            onFeedSelectionChange={onFeedSelectionChange}
+          />
           <Divider />
           <TimeSection uploadDate={uploadDate} />
           <Divider />

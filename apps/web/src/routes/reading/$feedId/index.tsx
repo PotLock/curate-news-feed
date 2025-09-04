@@ -67,6 +67,42 @@ function ReadingLayoutContent() {
     search.article || 0
   );
 
+  // State for selected feeds (for multi-feed support)
+  const [selectedFeedIds, setSelectedFeedIds] = useState<string[]>([feedId]);
+
+  // Load saved feed selections on component mount
+  useEffect(() => {
+    const loadFeedSelections = () => {
+      try {
+        const accountId = "anonymous-user";
+        const savedKey = `selected-feeds-${accountId}`;
+        const savedSelections = localStorage.getItem(savedKey);
+        
+        if (savedSelections) {
+          const selectedIds = JSON.parse(savedSelections);
+          if (Array.isArray(selectedIds) && selectedIds.length > 0) {
+            setSelectedFeedIds(selectedIds);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn("Failed to load saved feed selections:", error);
+      }
+      
+      // Default to current feedId if no saved selections
+      setSelectedFeedIds([feedId]);
+    };
+
+    loadFeedSelections();
+  }, [feedId]);
+
+  // Handle feed selection changes from the Categories popup
+  const handleFeedSelectionChange = (newSelectedFeedIds: string[]) => {
+    setSelectedFeedIds(newSelectedFeedIds);
+    // Reset to first article when feed selection changes
+    setCurrentArticleIndex(0);
+  };
+
   // TTS state and handlers
   const [isTTSPlaying, setIsTTSPlaying] = useState(false);
   const [isTTSPaused, setIsTTSPaused] = useState(false);
@@ -103,12 +139,17 @@ function ReadingLayoutContent() {
     );
   }
 
-  // Query for the feed data
+  // Simplified approach: just use the existing working pattern
   const feedQueryOptions = trpc.getFeed.queryOptions({ feedId });
   const { data: feedData, error } = useQuery({
     ...feedQueryOptions,
     initialData: loaderData.feedData,
   });
+
+  // Debug logging to understand the data structure
+  console.log("Debug - feedData:", feedData);
+  console.log("Debug - loaderData:", loaderData);
+  console.log("Debug - feedData?.items:", feedData?.items);
 
   // Use the feed items directly
   const feedItems = feedData?.items || [];
@@ -244,6 +285,7 @@ function ReadingLayoutContent() {
             categoryCount={getCategoryCount()}
             uploadDate={currentItem.date}
             authorName={currentItem.author?.[0]?.name}
+            onFeedSelectionChange={handleFeedSelectionChange}
           />
         </div>
 
@@ -252,9 +294,16 @@ function ReadingLayoutContent() {
           {/* Mobile Progress Bar - Fixed */}
           <div className="flex-shrink-0 mb-4">
             <div className="flex items-center justify-between px-4 py-3 bg-[#FFFFFFF2] border-[0.667px] border-[#E5E5E5] rounded-[12px] shadow-[0_4px_6px_-4px_rgba(0,0,0,0.10),0_10px_15px_-3px_rgba(0,0,0,0.10)]">
-              <span className="text-sm font-bold leading-[20px] font-Inter">
-                {currentIndex}/{totalCount}
-              </span>
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-bold leading-[20px] font-Inter">
+                  {currentIndex}/{totalCount}
+                </span>
+                {selectedFeedIds.length > 1 && (
+                  <span className="text-xs text-gray-500 font-Inter">
+                    from {selectedFeedIds.length} feeds
+                  </span>
+                )}
+              </div>
               <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full relative overflow-hidden">
                 <div
                   className="absolute left-0 top-0 h-full bg-black rounded-full transition-all duration-300"

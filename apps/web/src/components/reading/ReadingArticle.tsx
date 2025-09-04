@@ -454,9 +454,19 @@ export function ReadingArticle({
     >
       <div className="p-6 sm:p-8">
         {/* 1. Title */}
-        <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-tight sm:leading-[40px] lg:leading-[50px] text-center text-[#0A0A0A] font-Inter px-4 sm:px-0 mb-6">
-          {articleData.title}
-        </h1>
+        <div className="text-center mb-6">
+          <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-tight sm:leading-[40px] lg:leading-[50px] text-[#0A0A0A] font-Inter px-4 sm:px-0">
+            {articleData.title}
+          </h1>
+          {/* Source Feed Indicator (for multi-feed) */}
+          {(articleData as any)?.sourceFeed && (
+            <div className="mt-3">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                from {(articleData as any).sourceFeed.title}
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* 2. Meta Information Row */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 sm:px-0 mb-6">
