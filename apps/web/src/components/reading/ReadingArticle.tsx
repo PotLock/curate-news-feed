@@ -7,6 +7,37 @@ import type { PanInfo } from "motion/react";
 import { useReadingSettings } from "@/contexts/reading-settings-context";
 import { authClient } from "@/lib/auth-client";
 
+// Helper function to convert Twitter handles to clickable links
+const linkifyTwitterHandles = (text: string) => {
+  // Regex to match @username (alphanumeric + underscore, not at start of word boundary after @)
+  const twitterHandleRegex = /(@)([a-zA-Z0-9_]+)/g;
+  
+  return text.split(twitterHandleRegex).map((part, index) => {
+    // If this part is '@', skip it as it's handled with the next part
+    if (part === '@') return null;
+    
+    // If the previous part was '@', this is a username
+    const prevPart = text.split(twitterHandleRegex)[index - 1];
+    if (prevPart === '@') {
+      return (
+        <a
+          key={index}
+          href={`https://twitter.com/${part}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          @{part}
+        </a>
+      );
+    }
+    
+    // Regular text
+    return part;
+  }).filter(Boolean); // Remove null entries
+};
+
 interface ArticleItem {
   id?: string;
   title: string;
@@ -449,6 +480,7 @@ export function ReadingArticle({
     return [firstParagraph];
   };
 
+
   const ArticleCard = ({
     articleData,
     isBackground = false,
@@ -537,7 +569,7 @@ export function ReadingArticle({
           <div className="flex flex-col px-4 sm:px-0">
             {/* First paragraph with special styling */}
             <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
-              {parseContent(item.content || "")[0]}
+              {linkifyTwitterHandles(parseContent(item.content || "")[0])}
             </p>
 
             {/* Subsequent paragraphs */}
@@ -548,7 +580,7 @@ export function ReadingArticle({
                   key={index}
                   className="text-[#0A0A0A] font-Inter text-base text-wrap sm:text-lg font-normal leading-[24px] sm:leading-[29.25px] mb-4 sm:mb-6"
                 >
-                  {paragraph}
+                  {linkifyTwitterHandles(paragraph)}
                 </p>
               ))}
           </div>
@@ -605,7 +637,7 @@ export function ReadingArticle({
         {!item.content && item.description && (
           <div className="flex flex-col px-4 sm:px-0">
             <p className="text-[#737373] font-Inter text-lg sm:text-xl lg:text-2xl font-light leading-[28px] sm:leading-[32px] lg:leading-[39px] mb-6 sm:mb-8">
-              {item.description}
+              {linkifyTwitterHandles(item.description)}
             </p>
           </div>
         )}

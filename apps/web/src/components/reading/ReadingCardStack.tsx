@@ -6,6 +6,37 @@ import { useReadingSettings } from "@/contexts/reading-settings-context";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "../ui/button";
 
+// Helper function to convert Twitter handles to clickable links
+const linkifyTwitterHandles = (text: string) => {
+  // Regex to match @username (alphanumeric + underscore, not at start of word boundary after @)
+  const twitterHandleRegex = /(@)([a-zA-Z0-9_]+)/g;
+  
+  return text.split(twitterHandleRegex).map((part, index) => {
+    // If this part is '@', skip it as it's handled with the next part
+    if (part === '@') return null;
+    
+    // If the previous part was '@', this is a username
+    const prevPart = text.split(twitterHandleRegex)[index - 1];
+    if (prevPart === '@') {
+      return (
+        <a
+          key={index}
+          href={`https://twitter.com/${part}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          @{part}
+        </a>
+      );
+    }
+    
+    // Regular text
+    return part;
+  }).filter(Boolean); // Remove null entries
+};
+
 interface ArticleItem {
   id?: string;
   title: string;
@@ -155,6 +186,7 @@ export function ReadingCardStack({
 
     return [firstParagraph];
   };
+
 
   return (
     <div className="relative h-full w-full flex items-center justify-center" style={{ perspective: "1000px" }}>
@@ -347,11 +379,11 @@ function Card({
           {parseContent(article.content || "").length > 0 && (
             <div className="space-y-3">
               <p className="text-[#737373] text-base sm:text-lg font-light leading-relaxed">
-                {parseContent(article.content || "")[0]}
+                {linkifyTwitterHandles(parseContent(article.content || "")[0])}
               </p>
               {parseContent(article.content || "").slice(1).map((paragraph, idx) => (
                 <p key={idx} className="text-[#0A0A0A] text-sm sm:text-base leading-relaxed">
-                  {paragraph}
+                  {linkifyTwitterHandles(paragraph)}
                 </p>
               ))}
             </div>
@@ -360,13 +392,32 @@ function Card({
           {/* Fallback to description */}
           {!article.content && article.description && (
             <p className="text-[#737373] text-base sm:text-lg font-light leading-relaxed">
-              {article.description}
+              {linkifyTwitterHandles(article.description)}
             </p>
           )}
 
-          {/* View Tweet Button */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <Button asChild className="w-full">
+          {/* View Tweet Section */}
+          <div className="flex flex-col sm:flex-row sm:items-center min-h-[62px] justify-between border-t-[1px] border-[#E2E8F0] gap-4 sm:gap-2 py-4 sm:py-0 px-4 sm:px-0 mt-6">
+            <div className="flex gap-2 items-center justify-center sm:justify-start">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="sm:w-6 sm:h-6"
+              >
+                <path
+                  d="M17.743 3H20.7952L14.1285 10.6707L22 21.0723H15.8153L10.996 14.7671L5.45382 21.0723H2.40161L9.5502 12.8795L2 3H8.34538L12.7229 8.78313L17.743 3ZM16.6586 19.2249H18.3454L7.42169 4.72691H5.5743L16.6586 19.2249Z"
+                  fill="#09090B"
+                />
+              </svg>
+              <p className="text-sm sm:text-base text-[#737373] leading-[24px] text-center sm:text-left">
+                Submitted by{" "}
+                {article.author?.[0]?.name || "Unknown"}
+              </p>
+            </div>
+            <Button asChild className="w-full sm:w-auto touch-manipulation relative z-40">
               <a
                 href={article.link}
                 target="_blank"
@@ -374,10 +425,22 @@ function Card({
                 className="flex items-center justify-center gap-2"
                 onClick={(e) => e.stopPropagation()}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 17 16" fill="none">
-                  <path d="M10.5 2H14.5M14.5 2V6M14.5 2L7.16667 9.33333M12.5 8.66667V12.6667C12.5 13.0203 12.3595 13.3594 12.1095 13.6095C11.8594 13.8595 11.5203 14 11.1667 14H3.83333C3.47971 14 3.14057 13.8595 2.89052 13.6095C2.64048 13.3594 2.5 13.0203 2.5 12.6667V5.33333C2.5 4.97971 2.64048 4.64057 2.89052 4.39052C3.14057 4.14048 3.47971 4 3.83333 4H7.83333" stroke="#F8FAFC" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="15"
+                  viewBox="0 0 17 16"
+                  fill="none"
+                  className="sm:w-[17px] sm:h-4"
+                >
+                  <path
+                    d="M10.5 2H14.5M14.5 2V6M14.5 2L7.16667 9.33333M12.5 8.66667V12.6667C12.5 13.0203 12.3595 13.3594 12.1095 13.6095C11.8594 13.8595 11.5203 14 11.1667 14H3.83333C3.47971 14 3.14057 13.8595 2.89052 13.6095C2.64048 13.3594 2.5 13.0203 2.5 12.6667V5.33333C2.5 4.97971 2.64048 4.64057 2.89052 4.39052C3.14057 4.14048 3.47971 4 3.83333 4H7.83333"
+                    stroke="#F8FAFC"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-                View Tweet
+                <p>View Tweet</p>
               </a>
             </Button>
           </div>
