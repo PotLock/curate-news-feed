@@ -1,10 +1,13 @@
 import type { FeedItem as IFeedItem } from "../../../server/src/schemas/feed";
-import { useParams, Link } from "@tanstack/react-router";
+import { useParams, Link, useNavigate } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { useSearch } from "@/contexts/search-context";
 import { useSearch as useSearchFilter } from "@/hooks/use-search";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
+import { OnboardingModal } from "@/components/OnboardingModal";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/utils/trpc";
 
 // Function to generate slug from title
 const generateSlug = (title: string): string => {
@@ -25,9 +28,55 @@ interface FeedGridProps {
 export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   const params = useParams({ strict: false });
   const feedId = (params as any)?.feedId;
+  const navigate = useNavigate();
   const { searchQuery, isSearchActive } = useSearch();
   const filteredItems = useSearchFilter(items, searchQuery) as IFeedItem[];
   const [selectedCategory, setSelectedCategory] = useState("trending");
+  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
+  
+  // Fetch feeds for onboarding modal
+  const trpc = useTRPC();
+  const { data: feedsData } = useQuery(trpc.getFeeds.queryOptions());
+
+  // Handle Start Reading button click
+  const handleStartReading = () => {
+    const hasCompletedOnboarding = localStorage.getItem('onboarding-completed');
+    if (!hasCompletedOnboarding) {
+      setIsOnboardingModalOpen(true);
+    } else {
+      // Navigate directly to reading if onboarding is completed
+      if (displayItems.length > 0 && feedId) {
+        navigate({
+          to: '/reading/$feedId/$slug',
+          params: {
+            feedId: feedId,
+            slug: generateSlug(displayItems[0].title),
+          },
+        });
+      }
+    }
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = (settings: {
+    selectedFeeds: string[];
+    dailyGoal: number;
+    notificationFrequency: string;
+  }) => {
+    // Save reading settings to localStorage
+    const existingSettings = JSON.parse(localStorage.getItem('reading-settings') || '{}');
+    const updatedSettings = {
+      ...existingSettings,
+      dailyGoal: settings.dailyGoal,
+      notificationFrequency: settings.notificationFrequency,
+      version: 3
+    };
+    localStorage.setItem('reading-settings', JSON.stringify(updatedSettings));
+    
+    // Navigate to the first selected feed or default feed
+    const targetFeedId = settings.selectedFeeds[0] || feedId || 'general';
+    navigate({ to: `/reading/${targetFeedId}` });
+  };
 
   // Color scheme for cards
   const getCardColor = (itemIndex: number) => {
@@ -262,21 +311,29 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
           {/* Sticky Bottom CTA - Fixed on mobile, sticky on desktop */}
           <div className="fixed sm:sticky bottom-0 left-0 right-0 sm:left-auto sm:right-auto h-20 sm:h-24 flex items-center justify-center bg-gradient-to-t from-black to-gray-400/0 rounded-b-lg z-10">
             {displayItems.length > 0 && feedId && (
-              <Link
-                to="/reading/$feedId/$slug"
-                params={{
-                  feedId: feedId,
-                  slug: generateSlug(displayItems[0].title),
-                }}
+              <button
+                onClick={handleStartReading}
                 className="flex items-center backdrop-blur-sm justify-center gap-2 w-[200px] sm:w-[229px] px-4 sm:px-6 py-3 bg-white/10 text-white font-inter text-lg sm:text-xl font-medium leading-6 sm:leading-[37.333px] rounded-[45.5px] hover:bg-white/20 transition-colors border-t border-b border-white touch-manipulation"
               >
                 Start Reading
                 <ArrowRight size={18} className="sm:w-[21px] sm:h-[21px]" />
-              </Link>
+              </button>
             )}
           </div>
         </div>
       </div>
+      
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={isOnboardingModalOpen}
+        onOpenChange={setIsOnboardingModalOpen}
+        feeds={feedsData?.items?.map((feed: any) => ({
+          id: feed.id,
+          title: feed.title,
+          description: feed.description
+        })) || []}
+        onComplete={handleOnboardingComplete}
+      />
     </div>
   );
 }

@@ -33,6 +33,7 @@ export function ReadingHeader({
   const {
     readingSpeed,
     autoAdvance,
+    dailyGoal,
     textToSpeech,
     selectedVoice,
     showImages,
@@ -77,6 +78,10 @@ export function ReadingHeader({
             autoAdvance={autoAdvance}
             onAutoAdvanceChange={(value) =>
               updateSettings({ autoAdvance: value })
+            }
+            dailyGoal={dailyGoal}
+            onDailyGoalChange={(value) =>
+              updateSettings({ dailyGoal: value })
             }
             textToSpeech={textToSpeech}
             onTextToSpeechChange={(value) =>
@@ -135,6 +140,10 @@ export function ReadingHeader({
             autoAdvance={autoAdvance}
             onAutoAdvanceChange={(value) =>
               updateSettings({ autoAdvance: value })
+            }
+            dailyGoal={dailyGoal}
+            onDailyGoalChange={(value) =>
+              updateSettings({ dailyGoal: value })
             }
             textToSpeech={textToSpeech}
             onTextToSpeechChange={(value) =>

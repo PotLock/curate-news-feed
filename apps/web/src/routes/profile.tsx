@@ -203,6 +203,7 @@ function OverviewTab({ session }: { session: any }) {
   const [likedArticles, setLikedArticles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userAccountId, setUserAccountId] = useState<string | null>(null);
+  const [dailyGoal, setDailyGoal] = useState<number>(3);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -225,6 +226,13 @@ function OverviewTab({ session }: { session: any }) {
         }
 
         setUserAccountId(accountId);
+
+        // Load daily goal from reading settings
+        const settingsData = localStorage.getItem('reading-settings');
+        if (settingsData) {
+          const settings = JSON.parse(settingsData);
+          setDailyGoal(settings.dailyGoal || 3);
+        }
 
         // Load reading history from localStorage (same as ReadingHistoryTab)
         const historyKey = `reading-history-${accountId}`;
@@ -438,7 +446,7 @@ function OverviewTab({ session }: { session: any }) {
           </div>
           <div className="flex flex-col items-end">
             <p className="text-white text-right font-inter text-[30px] font-bold leading-9">
-              {articlesReadToday}/3
+              {articlesReadToday}/{dailyGoal}
             </p>
             <p className="text-[#DBEAFE] text-right font-inter text-base font-normal leading-6">
               Read Today
@@ -451,14 +459,14 @@ function OverviewTab({ session }: { session: any }) {
           <div className="flex justify-between items-center mb-2">
             <span className="text-white/80 text-sm font-medium">Daily Goal Progress</span>
             <span className="text-white text-sm font-bold">
-              {Math.round((articlesReadToday / 3) * 100)}% Completed
+              {Math.round((articlesReadToday / dailyGoal) * 100)}% Completed
             </span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-2.5 backdrop-blur-sm">
             <div 
               className="bg-white h-2.5 rounded-full transition-all duration-300 ease-out"
               style={{ 
-                width: `${Math.min((articlesReadToday / 3) * 100, 100)}%` 
+                width: `${Math.min((articlesReadToday / dailyGoal) * 100, 100)}%` 
               }}
             ></div>
           </div>

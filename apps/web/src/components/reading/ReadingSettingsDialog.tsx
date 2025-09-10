@@ -22,6 +22,8 @@ interface ReadingSettingsDialogProps {
   onReadingSpeedChange: (value: number[]) => void;
   autoAdvance: boolean;
   onAutoAdvanceChange: (value: boolean) => void;
+  dailyGoal: number;
+  onDailyGoalChange: (value: number) => void;
   textToSpeech: boolean;
   onTextToSpeechChange: (value: boolean) => void;
   voiceSettings: boolean;
@@ -45,6 +47,8 @@ export function ReadingSettingsDialog({
   onReadingSpeedChange,
   autoAdvance,
   onAutoAdvanceChange,
+  dailyGoal,
+  onDailyGoalChange,
   textToSpeech,
   onTextToSpeechChange,
   voiceSettings,
@@ -105,6 +109,8 @@ export function ReadingSettingsDialog({
                   onReadingSpeedChange={onReadingSpeedChange}
                   autoAdvance={autoAdvance}
                   onAutoAdvanceChange={onAutoAdvanceChange}
+                  dailyGoal={dailyGoal}
+                  onDailyGoalChange={onDailyGoalChange}
                 />
                 <AudioSettings
                   textToSpeech={textToSpeech}

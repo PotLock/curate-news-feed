@@ -10,6 +10,8 @@ interface ReadingSettingsType {
   // Reading Experience
   readingSpeed: number; // seconds per article
   autoAdvance: boolean;
+  dailyGoal: number; // daily reading goal
+  notificationFrequency: string; // daily, weekly, monthly, never
 
   // Audio Settings
   textToSpeech: boolean;
@@ -27,7 +29,7 @@ interface ReadingSettingsContextType extends ReadingSettingsType {
   resetSettings: () => void;
 }
 
-const CURRENT_VERSION = 2; // Increment this to force settings update
+const CURRENT_VERSION = 3; // Increment this to force settings update
 
 const defaultSettings: ReadingSettingsType = {
   // Settings version
@@ -39,6 +41,8 @@ const defaultSettings: ReadingSettingsType = {
   // Reading Experience
   readingSpeed: 8,
   autoAdvance: false,
+  dailyGoal: 3,
+  notificationFrequency: "daily",
 
   // Audio Settings
   textToSpeech: false,
