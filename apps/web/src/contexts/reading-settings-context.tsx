@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface ReadingSettingsType {
+  // Settings version for migration
+  version?: number;
+  
   // Visual Settings
   showImages: boolean;
 
@@ -24,9 +27,14 @@ interface ReadingSettingsContextType extends ReadingSettingsType {
   resetSettings: () => void;
 }
 
+const CURRENT_VERSION = 2; // Increment this to force settings update
+
 const defaultSettings: ReadingSettingsType = {
+  // Settings version
+  version: CURRENT_VERSION,
+  
   // Visual Settings
-  showImages: true,
+  showImages: false,
 
   // Reading Experience
   readingSpeed: 8,
@@ -63,7 +71,20 @@ export function ReadingSettingsProvider({
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsedSettings = JSON.parse(stored);
-        setSettings({ ...defaultSettings, ...parsedSettings });
+        
+        // Check if stored settings are from an older version
+        if (!parsedSettings.version || parsedSettings.version < CURRENT_VERSION) {
+          // Apply new defaults for showImages when upgrading
+          const updatedSettings = {
+            ...defaultSettings,
+            ...parsedSettings,
+            version: CURRENT_VERSION,
+            showImages: false, // Force showImages to false for existing users
+          };
+          setSettings(updatedSettings);
+        } else {
+          setSettings({ ...defaultSettings, ...parsedSettings });
+        }
       }
     } catch (error) {
       console.warn("Failed to load reading settings from localStorage:", error);

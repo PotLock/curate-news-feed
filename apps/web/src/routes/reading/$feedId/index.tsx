@@ -2,6 +2,7 @@ import { useQuery, useQueries } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ReadingHeader } from "@/components/reading/ReadingHeader";
 import { ReadingArticle } from "@/components/reading/ReadingArticle";
+import { ReadingCardStack } from "@/components/reading/ReadingCardStack";
 import { ReadingActions } from "@/components/reading/ReadingActions";
 import { Button } from "@/components/ui/button";
 import { ReadingSettingsProvider, useReadingSettings } from "@/contexts/reading-settings-context";
@@ -59,6 +60,9 @@ function ReadingLayoutContent() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const { textToSpeech } = useReadingSettings();
+  
+  // State for view mode (card stack vs traditional)
+  const [useCardStack, setUseCardStack] = useState(true);
 
   const loaderData = Route.useLoaderData();
 
@@ -72,6 +76,9 @@ function ReadingLayoutContent() {
   
   // State for time period filter
   const [selectedPeriod, setSelectedPeriod] = useState<string>("All Time");
+  
+  // Stable article count to prevent progress bar jumps
+  const stableArticleCountRef = useRef<number>(0);
 
   // Load saved feed selections on component mount
   useEffect(() => {
@@ -104,9 +111,9 @@ function ReadingLayoutContent() {
   // Handle feed selection changes from the Categories popup
   const handleFeedSelectionChange = (newSelectedFeedIds: string[]) => {
     setSelectedFeedIds(newSelectedFeedIds);
+    // Reset stable count when feeds change
+    stableArticleCountRef.current = 0;
     // Reset to first article when feed selection changes
-    setCurrentArticleIndex(0);
-    // Navigate to article 0 in URL as well
     navigate({
       to: "/reading/$feedId",
       params: { feedId },
@@ -117,8 +124,14 @@ function ReadingLayoutContent() {
   // Handle period filter changes
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
+    // Reset stable count when filter changes
+    stableArticleCountRef.current = 0;
     // Reset to first article when period changes
-    setCurrentArticleIndex(0);
+    navigate({
+      to: "/reading/$feedId",
+      params: { feedId },
+      search: { article: 0 },
+    });
   };
 
   // TTS state and handlers
@@ -194,6 +207,11 @@ function ReadingLayoutContent() {
         ...(id === feedId && loaderData?.feedData && {
           initialData: loaderData.feedData,
         }),
+        // Prevent refetching on navigation
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
       };
     }),
   });
@@ -256,11 +274,21 @@ function ReadingLayoutContent() {
   // Use aggregated articles
   const feedItems = aggregatedArticles.map((article) => article.item);
   
+  // Update stable article count - only allow it to increase or stay the same, never decrease
+  useEffect(() => {
+    if (aggregatedArticles.length > 0) {
+      // Only update if the new count is greater than the current stable count
+      // This prevents the progress bar from jumping when feeds are temporarily loading
+      if (aggregatedArticles.length > stableArticleCountRef.current || stableArticleCountRef.current === 0) {
+        stableArticleCountRef.current = aggregatedArticles.length;
+      }
+    }
+  }, [aggregatedArticles.length]);
+  
   // Validate and fix article index if out of bounds
   useEffect(() => {
     if (aggregatedArticles.length > 0 && currentArticleIndex >= aggregatedArticles.length) {
       // Current index is out of bounds, reset to 0
-      setCurrentArticleIndex(0);
       navigate({
         to: "/reading/$feedId",
         params: { feedId },
@@ -294,17 +322,23 @@ function ReadingLayoutContent() {
 
   const { prevItem, nextItem } = getNavigationItems();
 
-  // Calculate progress
-  const currentIndex = currentArticleIndex + 1;
-  const totalCount = feedItems.length;
-  const progressPercentage =
-    totalCount > 0 ? (currentIndex / totalCount) * 100 : 0;
+  // Calculate progress with memoization to prevent jumps
+  const { currentIndex, totalCount, progressPercentage } = useMemo(() => {
+    const index = currentArticleIndex + 1;
+    // Use the stable count if available, otherwise fall back to current length
+    const total = stableArticleCountRef.current > 0 ? stableArticleCountRef.current : feedItems.length;
+    const percentage = total > 0 ? (index / total) * 100 : 0;
+    return {
+      currentIndex: index,
+      totalCount: total,
+      progressPercentage: Math.min(100, Math.max(0, percentage))
+    };
+  }, [currentArticleIndex, feedItems.length]);
 
   // Navigation handlers for swipe actions
   const handleNavigateToNext = () => {
     if (currentArticleIndex < feedItems.length - 1) {
       const newIndex = currentArticleIndex + 1;
-      setCurrentArticleIndex(newIndex);
       navigate({
         to: "/reading/$feedId",
         params: { feedId },
@@ -316,7 +350,6 @@ function ReadingLayoutContent() {
   const handleNavigateToPrev = () => {
     if (currentArticleIndex > 0) {
       const newIndex = currentArticleIndex - 1;
-      setCurrentArticleIndex(newIndex);
       navigate({
         to: "/reading/$feedId",
         params: { feedId },
@@ -327,7 +360,6 @@ function ReadingLayoutContent() {
 
   // Reset function to go back to first article
   const handleReset = () => {
-    setCurrentArticleIndex(0);
     navigate({
       to: "/reading/$feedId",
       params: { feedId },
@@ -440,7 +472,7 @@ function ReadingLayoutContent() {
               </div>
               <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full relative overflow-hidden">
                 <div
-                  className="absolute left-0 top-0 h-full bg-black rounded-full transition-all duration-300"
+                  className="absolute left-0 top-0 h-full bg-black rounded-full transition-[width] duration-300 ease-in-out"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -470,32 +502,75 @@ function ReadingLayoutContent() {
 
           {/* Mobile Actions - Below Progress Bar */}
           <div className="flex-shrink-0 mb-6">
-            <div className="flex justify-center">
+            <div className="flex justify-center items-center gap-4">
               <ReadingActions
                 articleTitle={currentItem?.title || "No Article"}
                 articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem?.title || "no-article")}`}
                 articleId={currentItem?.id || currentItem?.title || "no-article"}
                 feedId={feedId}
               />
+              
+              {/* View Toggle */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUseCardStack(!useCardStack)}
+                className="flex items-center gap-2"
+              >
+                {useCardStack ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="9" y1="9" x2="15" y2="15"/>
+                      <line x1="15" y1="9" x2="9" y2="15"/>
+                    </svg>
+                    Cards
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14,2 14,8 20,8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    List
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
           {/* Scrollable Article Container */}
           <div className="flex-1 min-h-0 flex items-center justify-center">
             {currentItem ? (
-              <ReadingArticle
-                item={currentItem}
-                feedId={feedId}
-                prevItem={prevItem}
-                nextItem={nextItem}
-                generateSlug={generateSlug}
-                onNavigateToNext={handleNavigateToNext}
-                onNavigateToPrev={handleNavigateToPrev}
-                onTTSStateChange={handleTTSStateChange}
-                onTTSHandlersReady={handleTTSHandlersReady}
-                sourceFeed={currentArticleData?.sourceFeed}
-                showMultiFeedIndicator={selectedFeedIds.length > 1}
-              />
+              useCardStack ? (
+                <ReadingCardStack
+                  articles={aggregatedArticles.map(a => a.item)}
+                  feedId={feedId}
+                  currentIndex={currentArticleIndex}
+                  onNavigateToNext={handleNavigateToNext}
+                  onNavigateToPrev={handleNavigateToPrev}
+                  generateSlug={generateSlug}
+                  sourceFeed={currentArticleData?.sourceFeed}
+                  showMultiFeedIndicator={selectedFeedIds.length > 1}
+                />
+              ) : (
+                <ReadingArticle
+                  item={currentItem}
+                  feedId={feedId}
+                  prevItem={prevItem}
+                  nextItem={nextItem}
+                  generateSlug={generateSlug}
+                  onNavigateToNext={handleNavigateToNext}
+                  onNavigateToPrev={handleNavigateToPrev}
+                  onTTSStateChange={handleTTSStateChange}
+                  onTTSHandlersReady={handleTTSHandlersReady}
+                  sourceFeed={currentArticleData?.sourceFeed}
+                  showMultiFeedIndicator={selectedFeedIds.length > 1}
+                />
+              )
             ) : (
               noArticlesContent
             )}
@@ -513,7 +588,7 @@ function ReadingLayoutContent() {
             </div>
             <div className="h-[400px] w-2 bg-gray-200 rounded-full relative overflow-hidden">
               <div
-                className="absolute bottom-0 w-full bg-black rounded-full transition-all duration-300"
+                className="absolute bottom-0 w-full bg-black rounded-full transition-[height] duration-300 ease-in-out"
                 style={{ height: `${progressPercentage}%` }}
               />
             </div>
@@ -542,19 +617,32 @@ function ReadingLayoutContent() {
           {/* Scrollable Article Container */}
           <div className="flex-1 min-h-0 flex items-center justify-center">
             {currentItem ? (
-              <ReadingArticle
-                item={currentItem}
-                feedId={feedId}
-                prevItem={prevItem}
-                nextItem={nextItem}
-                generateSlug={generateSlug}
-                onNavigateToNext={handleNavigateToNext}
-                onNavigateToPrev={handleNavigateToPrev}
-                onTTSStateChange={handleTTSStateChange}
-                onTTSHandlersReady={handleTTSHandlersReady}
-                sourceFeed={currentArticleData?.sourceFeed}
-                showMultiFeedIndicator={selectedFeedIds.length > 1}
-              />
+              useCardStack ? (
+                <ReadingCardStack
+                  articles={aggregatedArticles.map(a => a.item)}
+                  feedId={feedId}
+                  currentIndex={currentArticleIndex}
+                  onNavigateToNext={handleNavigateToNext}
+                  onNavigateToPrev={handleNavigateToPrev}
+                  generateSlug={generateSlug}
+                  sourceFeed={currentArticleData?.sourceFeed}
+                  showMultiFeedIndicator={selectedFeedIds.length > 1}
+                />
+              ) : (
+                <ReadingArticle
+                  item={currentItem}
+                  feedId={feedId}
+                  prevItem={prevItem}
+                  nextItem={nextItem}
+                  generateSlug={generateSlug}
+                  onNavigateToNext={handleNavigateToNext}
+                  onNavigateToPrev={handleNavigateToPrev}
+                  onTTSStateChange={handleTTSStateChange}
+                  onTTSHandlersReady={handleTTSHandlersReady}
+                  sourceFeed={currentArticleData?.sourceFeed}
+                  showMultiFeedIndicator={selectedFeedIds.length > 1}
+                />
+              )
             ) : (
               noArticlesContent
             )}
@@ -571,10 +659,11 @@ function ReadingLayoutContent() {
           </div>
         </div>
 
-        {/* Fixed Bottom Navigation */}
-        <div className="fixed bottom-[30px] left-1/2 transform -translate-x-1/2 z-50">
-          <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90 shadow-lg">
-            <div className="flex items-center gap-[16px] sm:gap-[28px]">
+        {/* Fixed Bottom Navigation - Only show when not using card stack */}
+        {!useCardStack && (
+          <div className="fixed bottom-[30px] left-1/2 transform -translate-x-1/2 z-50">
+            <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90 shadow-lg">
+              <div className="flex items-center gap-[16px] sm:gap-[28px]">
               {/* Previous Button */}
               {prevItem ? (
                 <Button
@@ -723,6 +812,7 @@ function ReadingLayoutContent() {
             </div>
           </div>
         </div>
+        )}
       </div>
   );
 }
