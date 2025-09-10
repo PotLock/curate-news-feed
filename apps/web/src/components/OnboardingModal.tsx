@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useReadingTimer } from "@/hooks/useReadingTimer";
 
 interface Feed {
   id: string;
@@ -21,17 +22,21 @@ interface OnboardingModalProps {
     dailyGoal: number;
     notificationFrequency: string;
   }) => void;
+  accountId?: string | null;
 }
 
 export function OnboardingModal({ 
   isOpen, 
   onOpenChange, 
   feeds, 
-  onComplete 
+  onComplete,
+  accountId = null
 }: OnboardingModalProps) {
   const [selectedFeeds, setSelectedFeeds] = useState<string[]>([]);
   const [dailyGoal, setDailyGoal] = useState<number>(3);
   const [notificationFrequency, setNotificationFrequency] = useState<string>("daily");
+  
+  const { startTimer } = useReadingTimer(accountId);
 
   const handleFeedToggle = (feedId: string, checked: boolean) => {
     if (checked) {
@@ -45,6 +50,9 @@ export function OnboardingModal({
     // Save to localStorage for persistence
     localStorage.setItem('onboarding-completed', 'true');
     localStorage.setItem('selected-feeds', JSON.stringify(selectedFeeds));
+    
+    // Start the reading timer
+    startTimer();
     
     // Call completion callback
     onComplete({

@@ -6,8 +6,12 @@ import { useSearch as useSearchFilter } from "@/hooks/use-search";
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { OnboardingModal } from "@/components/OnboardingModal";
+import { GoalCompletionModal } from "@/components/GoalCompletionModal";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc";
+import { useGoalCompletion } from "@/hooks/useGoalCompletion";
+import { useReadingTimer } from "@/hooks/useReadingTimer";
+import { authClient } from "@/lib/auth-client";
 
 // Function to generate slug from title
 const generateSlug = (title: string): string => {
@@ -33,10 +37,65 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   const filteredItems = useSearchFilter(items, searchQuery) as IFeedItem[];
   const [selectedCategory, setSelectedCategory] = useState("trending");
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
+  const [userAccountId, setUserAccountId] = useState<string | null>(null);
   
   // Fetch feeds for onboarding modal
   const trpc = useTRPC();
   const { data: feedsData } = useQuery(trpc.getFeeds.queryOptions());
+  
+  // Goal completion and reading timer hooks
+  const { shouldShowModal, markModalShown } = useGoalCompletion(userAccountId);
+  const { formattedTime } = useReadingTimer(userAccountId);
+
+  // Get user account ID
+  useEffect(() => {
+    const getUserAccount = async () => {
+      try {
+        const { data: session } = await authClient.getSession();
+        if (session?.user) {
+          try {
+            const { data: nearProfile } = await authClient.near.getProfile();
+            const accountId =
+              (window as any)?.near?.accountId?.() ||
+              nearProfile?.accountId ||
+              session.user.email ||
+              session.user.id;
+            setUserAccountId(accountId);
+          } catch {
+            setUserAccountId(session.user.email || session.user.id);
+          }
+        } else {
+          setUserAccountId("anonymous-user");
+        }
+      } catch (error) {
+        console.warn("Failed to get user account:", error);
+        setUserAccountId("anonymous-user");
+      }
+    };
+
+    getUserAccount();
+  }, []);
+
+  // Calculate articles read today for the modal
+  const getArticlesReadToday = () => {
+    if (!userAccountId) return 0;
+    
+    try {
+      const historyKey = `reading-history-${userAccountId}`;
+      const historyData = localStorage.getItem(historyKey);
+      if (historyData) {
+        const history = JSON.parse(historyData);
+        const today = new Date().toDateString();
+        const todayArticles = Object.values(history).filter(
+          (article: any) => new Date(article.readAt).toDateString() === today
+        );
+        return todayArticles.length;
+      }
+    } catch (error) {
+      console.warn("Failed to get articles read today:", error);
+    }
+    return 0;
+  };
 
   // Handle Start Reading button click
   const handleStartReading = () => {
@@ -333,6 +392,19 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
           description: feed.description
         })) || []}
         onComplete={handleOnboardingComplete}
+        accountId={userAccountId}
+      />
+      
+      {/* Goal Completion Modal */}
+      <GoalCompletionModal
+        isOpen={shouldShowModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            markModalShown();
+          }
+        }}
+        articlesReadToday={getArticlesReadToday()}
+        timeSpent={formattedTime}
       />
     </div>
   );

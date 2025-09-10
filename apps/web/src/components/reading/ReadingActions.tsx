@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { useGoalCompletion } from "@/hooks/useGoalCompletion";
+import { useReadingTimer } from "@/hooks/useReadingTimer";
 
 interface ReadingActionsProps {
   articleTitle: string;
@@ -21,6 +23,9 @@ export function ReadingActions({
   const [isSaved, setIsSaved] = useState(false);
   const [isLiked, setIsLiked] = useState<boolean | null>(null); // null = no preference, true = liked, false = disliked
   const [userAccountId, setUserAccountId] = useState<string | null>(null);
+  
+  const { checkGoalCompletion } = useGoalCompletion(userAccountId);
+  const { stopTimer } = useReadingTimer(userAccountId);
 
   // Get user account ID
   useEffect(() => {
@@ -100,11 +105,29 @@ export function ReadingActions({
       };
 
       localStorage.setItem(historyKey, JSON.stringify(readingHistory));
+      
+      // Check if daily goal has been completed
+      const today = new Date().toDateString();
+      const todayArticles = Object.values(readingHistory).filter(
+        (article: any) => new Date(article.readAt).toDateString() === today
+      );
+      const articlesReadToday = todayArticles.length;
+      
+      // Get daily goal from reading settings
+      const settingsData = localStorage.getItem('reading-settings');
+      const dailyGoal = settingsData ? JSON.parse(settingsData).dailyGoal || 3 : 3;
+      
+      // Check if goal is completed and stop timer if so
+      if (articlesReadToday >= dailyGoal) {
+        stopTimer();
+      }
+      
+      checkGoalCompletion(articlesReadToday, dailyGoal);
     };
 
     // Add to history when component mounts (user opened the article)
     addToHistory();
-  }, [articleId, articleTitle, articleUrl, feedId, userAccountId]);
+  }, [articleId, articleTitle, articleUrl, feedId, userAccountId, checkGoalCompletion, stopTimer]);
 
   // Save/unsave article with user-specific storage
   const handleSave = () => {
