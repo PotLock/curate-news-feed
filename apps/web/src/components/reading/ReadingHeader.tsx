@@ -56,13 +56,11 @@ export function ReadingHeader({
 
         {/* Mobile Info Sections */}
         <div className="flex items-center px-[10px] py-[6px] gap-[10px]">
-          <CategoriesSection 
-            count={categoryCount} 
-            currentFeedId={feedId}
-            onFeedSelectionChange={onFeedSelectionChange}
+          <TimeSection
+            uploadDate={uploadDate}
+            onPeriodChange={onPeriodChange}
+            selectedPeriod={selectedPeriod}
           />
-          <Divider />
-          <TimeSection uploadDate={uploadDate} onPeriodChange={onPeriodChange} selectedPeriod={selectedPeriod} />
           <Divider />
           <AuthorSection />
         </div>
@@ -118,14 +116,12 @@ export function ReadingHeader({
         </Link>
 
         {/* Center Header Container */}
-        <div className="flex items-center px-[10px] py-[6px] gap-[10px]">
-          <CategoriesSection 
-            count={categoryCount} 
-            currentFeedId={feedId}
-            onFeedSelectionChange={onFeedSelectionChange}
+        <div className="flex items-center px-[10px] border-[1px] border-[#e8e8e8] rounded-full py-[6px] gap-[10px]">
+          <TimeSection
+            uploadDate={uploadDate}
+            onPeriodChange={onPeriodChange}
+            selectedPeriod={selectedPeriod}
           />
-          <Divider />
-          <TimeSection uploadDate={uploadDate} onPeriodChange={onPeriodChange} selectedPeriod={selectedPeriod} />
           <Divider />
           <AuthorSection />
           <Divider />

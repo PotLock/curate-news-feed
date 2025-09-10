@@ -121,22 +121,19 @@ function RouteComponent() {
         {/* Profile Card */}
         <div className="flex p-4 sm:p-6 flex-col items-center self-stretch rounded-[14px] border border-[#E5E5E5] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full">
-            {/* Profile Image */}
+            {/* Profile Image - Always show default */}
             <div className="flex-shrink-0">
-              {profileData.profileImage ? (
-                <img
-                  src={profileData.profileImage}
-                  alt="Profile"
-                  className="w-20 h-20 rounded-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/80x80";
-                  }}
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-medium text-gray-600">
-                  {profileData.name.charAt(0).toUpperCase()}
-                </div>
-              )}
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="white"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+              </div>
             </div>
 
             {/* Profile Info */}
@@ -150,49 +147,6 @@ function RouteComponent() {
               <p className="text-[#737373] font-inter text-base font-normal leading-6">
                 {profileData.description}
               </p>
-
-              {/* Joined Date */}
-              <div className="flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="17"
-                  viewBox="0 0 16 17"
-                  fill="none"
-                >
-                  <path
-                    d="M5.3335 1.66333V4.33"
-                    stroke="#737373"
-                    strokeWidth="1.33333"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M10.6665 1.66333V4.33"
-                    stroke="#737373"
-                    strokeWidth="1.33333"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12.6667 2.99658H3.33333C2.59695 2.99658 2 3.59354 2 4.32992V13.6632C2 14.3996 2.59695 14.9966 3.33333 14.9966H12.6667C13.403 14.9966 14 14.3996 14 13.6632V4.32992C14 3.59354 13.403 2.99658 12.6667 2.99658Z"
-                    stroke="#737373"
-                    strokeWidth="1.33333"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 6.99658H14"
-                    stroke="#737373"
-                    strokeWidth="1.33333"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="text-[#737373] font-inter text-sm font-normal leading-5">
-                  Joined {formatDate(profileData.joinedDate)}
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -489,6 +443,24 @@ function OverviewTab({ session }: { session: any }) {
             <p className="text-[#DBEAFE] text-right font-inter text-base font-normal leading-6">
               Read Today
             </p>
+          </div>
+        </div>
+        
+        {/* Progress Bar Section */}
+        <div className="mt-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-white/80 text-sm font-medium">Daily Goal Progress</span>
+            <span className="text-white text-sm font-bold">
+              {Math.round((articlesReadToday / 3) * 100)}% Completed
+            </span>
+          </div>
+          <div className="w-full bg-white/20 rounded-full h-2.5 backdrop-blur-sm">
+            <div 
+              className="bg-white h-2.5 rounded-full transition-all duration-300 ease-out"
+              style={{ 
+                width: `${Math.min((articlesReadToday / 3) * 100, 100)}%` 
+              }}
+            ></div>
           </div>
         </div>
       </div>
