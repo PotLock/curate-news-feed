@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/utils/trpc";
 import { useGoalCompletion } from "@/hooks/useGoalCompletion";
 import { useReadingTimer } from "@/hooks/useReadingTimer";
+import { useReadingStreak } from "@/hooks/useReadingStreak";
 import { authClient } from "@/lib/auth-client";
 
 // Function to generate slug from title
@@ -43,9 +44,10 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   const trpc = useTRPC();
   const { data: feedsData } = useQuery(trpc.getFeeds.queryOptions());
   
-  // Goal completion and reading timer hooks
+  // Goal completion, reading timer, and streak hooks
   const { shouldShowModal, markModalShown } = useGoalCompletion(userAccountId);
   const { formattedTime } = useReadingTimer(userAccountId);
+  const { currentStreak, updateStreak } = useReadingStreak(userAccountId);
 
   // Get user account ID
   useEffect(() => {
@@ -405,6 +407,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
         }}
         articlesReadToday={getArticlesReadToday()}
         timeSpent={formattedTime}
+        readingStreak={currentStreak}
       />
     </div>
   );

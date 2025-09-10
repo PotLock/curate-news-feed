@@ -8,6 +8,7 @@ interface GoalCompletionModalProps {
   onOpenChange: (open: boolean) => void;
   articlesReadToday: number;
   timeSpent: string;
+  readingStreak: number;
 }
 
 export function GoalCompletionModal({
@@ -15,7 +16,11 @@ export function GoalCompletionModal({
   onOpenChange,
   articlesReadToday,
   timeSpent,
+  readingStreak,
 }: GoalCompletionModalProps) {
+  // Ensure streak is at least 1 when modal is shown (since modal only shows on goal completion)
+  const displayStreak = Math.max(readingStreak, 1);
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-none flex w-[555px] p-8 flex-col items-center gap-6 shrink-0">
@@ -108,7 +113,7 @@ export function GoalCompletionModal({
           </div>
           <div>
             <p className="text-[#16A34A] text-2xl font-bold leading-[26px]">
-              1 days
+              {displayStreak} {displayStreak === 1 ? 'day' : 'days'}
             </p>
           </div>
         </div>

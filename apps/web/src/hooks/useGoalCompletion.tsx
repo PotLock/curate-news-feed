@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 interface UseGoalCompletionResult {
   hasCompletedGoalToday: boolean;
   shouldShowModal: boolean;
-  checkGoalCompletion: (articlesReadToday: number, dailyGoal: number) => void;
+  checkGoalCompletion: (articlesReadToday: number, dailyGoal: number, onStreakUpdate?: () => void) => void;
   markModalShown: () => void;
   resetDailyProgress: () => void;
 }
@@ -48,7 +48,7 @@ export function useGoalCompletion(accountId: string | null): UseGoalCompletionRe
     return () => clearInterval(interval);
   }, [today]);
 
-  const checkGoalCompletion = useCallback((articlesReadToday: number, dailyGoal: number) => {
+  const checkGoalCompletion = useCallback((articlesReadToday: number, dailyGoal: number, onStreakUpdate?: () => void) => {
     if (!accountId) return;
     
     // Only check if goal hasn't been completed today
@@ -57,6 +57,11 @@ export function useGoalCompletion(accountId: string | null): UseGoalCompletionRe
         // Mark goal as completed for today
         localStorage.setItem(goalCompletedKey, 'true');
         setHasCompletedGoalToday(true);
+        
+        // Update reading streak
+        if (onStreakUpdate) {
+          onStreakUpdate();
+        }
         
         // Check if modal was already shown today
         const modalAlreadyShown = localStorage.getItem(modalShownKey) === 'true';

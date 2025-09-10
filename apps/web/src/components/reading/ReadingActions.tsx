@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { useGoalCompletion } from "@/hooks/useGoalCompletion";
 import { useReadingTimer } from "@/hooks/useReadingTimer";
+import { useReadingStreak } from "@/hooks/useReadingStreak";
 
 interface ReadingActionsProps {
   articleTitle: string;
@@ -26,6 +27,7 @@ export function ReadingActions({
   
   const { checkGoalCompletion } = useGoalCompletion(userAccountId);
   const { stopTimer } = useReadingTimer(userAccountId);
+  const { updateStreak } = useReadingStreak(userAccountId);
 
   // Get user account ID
   useEffect(() => {
@@ -122,7 +124,7 @@ export function ReadingActions({
         stopTimer();
       }
       
-      checkGoalCompletion(articlesReadToday, dailyGoal);
+      checkGoalCompletion(articlesReadToday, dailyGoal, updateStreak);
     };
 
     // Add to history when component mounts (user opened the article)
