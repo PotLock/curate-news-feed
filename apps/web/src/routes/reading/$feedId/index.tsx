@@ -659,11 +659,10 @@ function ReadingLayoutContent() {
           </div>
         </div>
 
-        {/* Fixed Bottom Navigation - Only show when not using card stack */}
-        {!useCardStack && (
-          <div className="fixed bottom-[30px] left-1/2 transform -translate-x-1/2 z-50">
-            <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90 shadow-lg">
-              <div className="flex items-center gap-[16px] sm:gap-[28px]">
+        {/* Fixed Bottom Navigation */}
+        <div className="fixed bottom-[30px] left-1/2 transform -translate-x-1/2 z-50">
+          <div className="flex h-auto sm:h-[65px] px-[16px] sm:px-[24px] py-[8px] sm:py-[12px] justify-center items-center gap-[6px] sm:gap-[8px] rounded-[32px] sm:rounded-[45.5px] bg-white/90 shadow-lg">
+            <div className="flex items-center gap-[16px] sm:gap-[28px]">
               {/* Previous Button */}
               {prevItem ? (
                 <Button
@@ -812,7 +811,6 @@ function ReadingLayoutContent() {
             </div>
           </div>
         </div>
-        )}
       </div>
   );
 }
