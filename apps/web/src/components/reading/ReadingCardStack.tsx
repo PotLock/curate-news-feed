@@ -306,8 +306,10 @@ function Card({
         zIndex,
       }}
       drag={isActive ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
+      dragConstraints={{ left: -300, right: 300 }}
       dragElastic={0.2}
+      dragSnapToOrigin
+      whileTap={{ scale: 0.98 }}
       onDragEnd={handleDragEnd}
       initial={false}
       animate={{
@@ -327,8 +329,9 @@ function Card({
       {/* Card Content */}
       <article 
         className={`w-full h-full bg-white rounded-2xl overflow-hidden ${
-          isActive ? "shadow-2xl cursor-grab active:cursor-grabbing" : "shadow-lg"
+          isActive ? "shadow-2xl cursor-grab active:cursor-grabbing touch-manipulation" : "shadow-lg"
         }`}
+        style={isActive ? { touchAction: "pan-y" } : undefined}
       >
         <div className="h-full overflow-y-auto p-6 sm:p-8">
           {/* Title */}

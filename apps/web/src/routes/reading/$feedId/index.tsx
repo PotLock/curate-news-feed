@@ -502,75 +502,29 @@ function ReadingLayoutContent() {
 
           {/* Mobile Actions - Below Progress Bar */}
           <div className="flex-shrink-0 mb-6">
-            <div className="flex justify-center items-center gap-4">
+            <div className="flex justify-center items-center">
               <ReadingActions
                 articleTitle={currentItem?.title || "No Article"}
                 articleUrl={`${window.location.origin}/reading/${feedId}/${generateSlug(currentItem?.title || "no-article")}`}
                 articleId={currentItem?.id || currentItem?.title || "no-article"}
                 feedId={feedId}
               />
-              
-              {/* View Toggle */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setUseCardStack(!useCardStack)}
-                className="flex items-center gap-2"
-              >
-                {useCardStack ? (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                      <line x1="9" y1="9" x2="15" y2="15"/>
-                      <line x1="15" y1="9" x2="9" y2="15"/>
-                    </svg>
-                    Cards
-                  </>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14,2 14,8 20,8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                      <polyline points="10,9 9,9 8,9"/>
-                    </svg>
-                    List
-                  </>
-                )}
-              </Button>
             </div>
           </div>
 
           {/* Scrollable Article Container */}
           <div className="flex-1 min-h-0 flex items-center justify-center">
             {currentItem ? (
-              useCardStack ? (
-                <ReadingCardStack
-                  articles={aggregatedArticles.map(a => a.item)}
-                  feedId={feedId}
-                  currentIndex={currentArticleIndex}
-                  onNavigateToNext={handleNavigateToNext}
-                  onNavigateToPrev={handleNavigateToPrev}
-                  generateSlug={generateSlug}
-                  sourceFeed={currentArticleData?.sourceFeed}
-                  showMultiFeedIndicator={selectedFeedIds.length > 1}
-                />
-              ) : (
-                <ReadingArticle
-                  item={currentItem}
-                  feedId={feedId}
-                  prevItem={prevItem}
-                  nextItem={nextItem}
-                  generateSlug={generateSlug}
-                  onNavigateToNext={handleNavigateToNext}
-                  onNavigateToPrev={handleNavigateToPrev}
-                  onTTSStateChange={handleTTSStateChange}
-                  onTTSHandlersReady={handleTTSHandlersReady}
-                  sourceFeed={currentArticleData?.sourceFeed}
-                  showMultiFeedIndicator={selectedFeedIds.length > 1}
-                />
-              )
+              <ReadingCardStack
+                articles={aggregatedArticles.map(a => a.item)}
+                feedId={feedId}
+                currentIndex={currentArticleIndex}
+                onNavigateToNext={handleNavigateToNext}
+                onNavigateToPrev={handleNavigateToPrev}
+                generateSlug={generateSlug}
+                sourceFeed={currentArticleData?.sourceFeed}
+                showMultiFeedIndicator={selectedFeedIds.length > 1}
+              />
             ) : (
               noArticlesContent
             )}

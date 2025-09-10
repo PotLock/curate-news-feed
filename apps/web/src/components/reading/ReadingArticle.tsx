@@ -689,14 +689,15 @@ export function ReadingArticle({
             <motion.div
               drag="x"
               dragElastic={0.2}
-              dragConstraints={{ left: -200, right: 200 }}
+              dragConstraints={{ left: -300, right: 300 }}
               dragSnapToOrigin={true}
               onDrag={handleDrag}
               onDragEnd={handleDragEnd}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
-              className="absolute inset-0 z-30 cursor-grab active:cursor-grabbing"
-              style={{ touchAction: "none" }}
+              whileTap={{ scale: 0.99 }}
+              className="absolute inset-0 z-30 cursor-grab active:cursor-grabbing touch-manipulation"
+              style={{ touchAction: "pan-x" }}
             />
 
             {/* Stationary card content */}
