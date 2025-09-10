@@ -191,7 +191,7 @@ export function ReadingCardStack({
   return (
     <div className="relative h-full w-full flex items-center justify-center" style={{ perspective: "1000px" }}>
       {/* Card Stack Container */}
-      <div className="relative w-full max-w-[660px] h-[600px]">
+      <div className="relative w-full max-w-[660px] sm:max-w-[660px] h-[600px] sm:h-[600px] px-4 sm:px-0">
         <AnimatePresence>
           {visibleArticles.map((article, index) => (
             <Card
@@ -282,15 +282,24 @@ function Card({
   // Z-index for proper layering
   const zIndex = totalCards - index;
 
+  const handleDrag = (_: any, info: PanInfo) => {
+    // Update the x motion value directly
+    x.set(info.offset.x);
+  };
+
   const handleDragEnd = (_: any, info: PanInfo) => {
-    const threshold = 100;
+    const threshold = window.innerWidth < 768 ? 75 : 100; // Smaller threshold on mobile
     const velocity = info.velocity.x;
     const offset = info.offset.x;
 
-    // Check if swipe is strong enough
-    if (Math.abs(velocity) > 500 || Math.abs(offset) > threshold) {
+    // Check if swipe is strong enough (lower velocity threshold for mobile)
+    const velocityThreshold = window.innerWidth < 768 ? 300 : 500;
+    if (Math.abs(velocity) > velocityThreshold || Math.abs(offset) > threshold) {
       const liked = offset > 0;
       onSwipe(liked);
+    } else {
+      // Snap back to center
+      x.set(0);
     }
   };
 
@@ -305,12 +314,6 @@ function Card({
         y: yOffset,
         zIndex,
       }}
-      drag={isActive ? "x" : false}
-      dragConstraints={{ left: -300, right: 300 }}
-      dragElastic={0.2}
-      dragSnapToOrigin
-      whileTap={{ scale: 0.98 }}
-      onDragEnd={handleDragEnd}
       initial={false}
       animate={{
         scale,
@@ -326,14 +329,32 @@ function Card({
         y: { duration: 0.2 },
       }}
     >
+      {/* Drag Layer - only for active card */}
+      {isActive && (
+        <motion.div
+          className="absolute inset-0 z-30 cursor-grab active:cursor-grabbing"
+          drag="x"
+          dragConstraints={{ left: -200, right: 200 }}
+          dragElastic={0.3}
+          dragSnapToOrigin={false}
+          dragMomentum={false}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          whileTap={{ scale: 0.98 }}
+          style={{ 
+            touchAction: "pan-x",
+            pointerEvents: "auto"
+          }}
+        />
+      )}
+
       {/* Card Content */}
       <article 
         className={`w-full h-full bg-white rounded-2xl overflow-hidden ${
-          isActive ? "shadow-2xl cursor-grab active:cursor-grabbing touch-manipulation" : "shadow-lg"
+          isActive ? "shadow-2xl" : "shadow-lg"
         }`}
-        style={isActive ? { touchAction: "pan-y" } : undefined}
       >
-        <div className="h-full overflow-y-auto p-6 sm:p-8">
+        <div className="h-full overflow-y-auto p-6 sm:p-8" style={{ touchAction: "pan-y" }}>
           {/* Title */}
           <div className="text-center mb-4">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-[#0A0A0A] font-Inter">
@@ -420,12 +441,13 @@ function Card({
                 {article.author?.[0]?.name || "Unknown"}
               </p>
             </div>
-            <Button asChild className="w-full sm:w-auto touch-manipulation relative z-40">
+            <Button asChild className="w-full sm:w-auto touch-manipulation relative z-50" style={{ pointerEvents: 'auto' }}>
               <a
                 href={article.link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2"
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
               >
                 <svg

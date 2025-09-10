@@ -2,8 +2,8 @@ import { Button } from "../ui/button";
 import { Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { motion, AnimatePresence } from "motion/react";
-import type { PanInfo } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
+import type { PanInfo } from "framer-motion";
 import { useReadingSettings } from "@/contexts/reading-settings-context";
 import { authClient } from "@/lib/auth-client";
 
