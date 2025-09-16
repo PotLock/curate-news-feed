@@ -39,11 +39,11 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   const [selectedCategory, setSelectedCategory] = useState("trending");
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
   const [userAccountId, setUserAccountId] = useState<string | null>(null);
-  
+
   // Fetch feeds for onboarding modal
   const trpc = useTRPC();
   const { data: feedsData } = useQuery(trpc.getFeeds.queryOptions());
-  
+
   // Goal completion, reading timer, and streak hooks
   const { shouldShowModal, markModalShown } = useGoalCompletion(userAccountId);
   const { formattedTime } = useReadingTimer(userAccountId);
@@ -81,7 +81,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
   // Calculate articles read today for the modal
   const getArticlesReadToday = () => {
     if (!userAccountId) return 0;
-    
+
     try {
       const historyKey = `reading-history-${userAccountId}`;
       const historyData = localStorage.getItem(historyKey);
@@ -101,14 +101,14 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
 
   // Handle Start Reading button click
   const handleStartReading = () => {
-    const hasCompletedOnboarding = localStorage.getItem('onboarding-completed');
+    const hasCompletedOnboarding = localStorage.getItem("onboarding-completed");
     if (!hasCompletedOnboarding) {
       setIsOnboardingModalOpen(true);
     } else {
       // Navigate directly to reading if onboarding is completed
       if (displayItems.length > 0 && feedId) {
         navigate({
-          to: '/reading/$feedId/$slug',
+          to: "/reading/$feedId/$slug",
           params: {
             feedId: feedId,
             slug: generateSlug(displayItems[0].title),
@@ -125,17 +125,19 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
     notificationFrequency: string;
   }) => {
     // Save reading settings to localStorage
-    const existingSettings = JSON.parse(localStorage.getItem('reading-settings') || '{}');
+    const existingSettings = JSON.parse(
+      localStorage.getItem("reading-settings") || "{}"
+    );
     const updatedSettings = {
       ...existingSettings,
       dailyGoal: settings.dailyGoal,
       notificationFrequency: settings.notificationFrequency,
-      version: 3
+      version: 3,
     };
-    localStorage.setItem('reading-settings', JSON.stringify(updatedSettings));
-    
+    localStorage.setItem("reading-settings", JSON.stringify(updatedSettings));
+
     // Navigate to the first selected feed or default feed
-    const targetFeedId = settings.selectedFeeds[0] || feedId || 'general';
+    const targetFeedId = settings.selectedFeeds[0] || feedId || "general";
     navigate({ to: `/reading/${targetFeedId}` });
   };
 
@@ -167,8 +169,8 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
       items
         .flatMap((item) => item.category || [])
         .map((cat) => cat.name)
-        .filter(Boolean),
-    ),
+        .filter(Boolean)
+    )
   ).sort();
 
   // Filter items by selected category
@@ -176,7 +178,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
     selectedCategory === "trending"
       ? filteredItems
       : filteredItems.filter((item) =>
-          item.category?.some((cat) => cat.name === selectedCategory),
+          item.category?.some((cat) => cat.name === selectedCategory)
         );
 
   const displayItems = categoryFilteredItems;
@@ -219,7 +221,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
             )}
 
             {/* Categories Section */}
-            <div className="mt-4 sm:mt-6">
+            {/* <div className="mt-4 sm:mt-6">
               <div className="flex gap-2 overflow-x-auto scrollbar-hide w-full pb-2">
                 <Badge
                   variant={
@@ -251,7 +253,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                   </Badge>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -304,7 +306,7 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
                       const maxVisibleBadges = 2;
                       const visibleCategories = item.category!.slice(
                         0,
-                        maxVisibleBadges,
+                        maxVisibleBadges
                       );
                       const hiddenCount =
                         item.category!.length - maxVisibleBadges;
@@ -383,20 +385,22 @@ export function FeedGrid({ items, feedTitle, feedDescription }: FeedGridProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Onboarding Modal */}
       <OnboardingModal
         isOpen={isOnboardingModalOpen}
         onOpenChange={setIsOnboardingModalOpen}
-        feeds={feedsData?.items?.map((feed: any) => ({
-          id: feed.id,
-          title: feed.title,
-          description: feed.description
-        })) || []}
+        feeds={
+          feedsData?.items?.map((feed: any) => ({
+            id: feed.id,
+            title: feed.title,
+            description: feed.description,
+          })) || []
+        }
         onComplete={handleOnboardingComplete}
         accountId={userAccountId}
       />
-      
+
       {/* Goal Completion Modal */}
       <GoalCompletionModal
         isOpen={shouldShowModal}
