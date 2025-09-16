@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import type { PanInfo } from "framer-motion";
 import { useNavigate } from "@tanstack/react-router";
@@ -256,9 +256,6 @@ function Card({
   showMultiFeedIndicator,
 }: CardProps) {
   const x = useMotionValue(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
-  const [isSwiping, setIsSwiping] = useState(false);
 
   // Rotation based on drag
   const rotateRaw = useTransform(x, [-150, 150], [-18, 18]);
@@ -285,59 +282,31 @@ function Card({
   // Z-index for proper layering
   const zIndex = totalCards - index;
 
-  // Handle touch events for swipe detection
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isActive) return;
-    const touch = e.touches[0];
-    setTouchStart({ x: touch.clientX, y: touch.clientY });
-  };
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    const threshold = window.innerWidth < 768 ? 75 : 100; // Smaller threshold on mobile
+    const velocity = info.velocity.x;
+    const offset = info.offset.x;
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isActive || !touchStart) return;
-
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStart.x;
-    const deltaY = touch.clientY - touchStart.y;
-
-    // Only start swiping if horizontal movement is greater than vertical
-    if (!isSwiping && Math.abs(deltaX) > 10) {
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        setIsSwiping(true);
-      }
-    }
-
-    if (isSwiping) {
-      e.preventDefault(); // Prevent scrolling only when swiping
-      x.set(deltaX);
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isActive || !touchStart || !isSwiping) {
-      setTouchStart(null);
-      setIsSwiping(false);
-      return;
-    }
-
-    const threshold = 75; // Swipe threshold
-    const currentX = x.get();
-
-    if (Math.abs(currentX) > threshold) {
-      const liked = currentX > 0;
+    // Check if swipe is strong enough (lower velocity threshold for mobile)
+    const velocityThreshold = window.innerWidth < 768 ? 300 : 500;
+    if (Math.abs(velocity) > velocityThreshold || Math.abs(offset) > threshold) {
+      const liked = offset > 0;
       onSwipe(liked);
     } else {
       // Snap back to center
       x.set(0);
     }
-
-    setTouchStart(null);
-    setIsSwiping(false);
   };
 
   return (
     <motion.div
-      ref={containerRef}
       className="absolute inset-0"
+      drag={isActive ? "x" : false}
+      dragDirectionLock
+      dragConstraints={{ left: -200, right: 200 }}
+      dragElastic={0.3}
+      dragSnapToOrigin={true}
+      onDragEnd={isActive ? handleDragEnd : undefined}
       style={{
         x: isActive ? x : 0,
         opacity,
@@ -345,6 +314,7 @@ function Card({
         scale,
         y: yOffset,
         zIndex,
+        touchAction: 'pan-y',
       }}
       initial={false}
       animate={{
@@ -360,17 +330,14 @@ function Card({
         scale: { duration: 0.2 },
         y: { duration: 0.2 },
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Card Content */}
       <article
         className={`w-full h-full bg-white rounded-2xl overflow-hidden ${
           isActive ? "shadow-2xl" : "shadow-lg"
-        }`}
+        } ${isActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
       >
-        <div className="h-full overflow-y-auto p-6 sm:p-8">
+        <div className="h-full overflow-y-auto p-6 sm:p-8" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
           {/* Title */}
           <div className="text-center mb-4">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-[#0A0A0A] font-Inter">
